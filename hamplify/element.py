@@ -5,7 +5,8 @@ class Element:
     pass
 
 class Node(Element):
-  children = []
+  def __init__(self):
+    self.children = []
 
   def add_child(self, e):
     self.children.append(e)
@@ -17,6 +18,8 @@ class Text(Element):
 
 class Tag(Node):
   def __init__(self, tag="div", classes=None, dom_id="", attrs=None):
+    super().__init__()
+
     self.tag = tag
 
     if classes == None:

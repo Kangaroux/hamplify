@@ -14,93 +14,144 @@ TOKEN_ATTR = ("(", ")")
 class ParseError(Exception):
   pass
 
-def parse_line(text):
-  # Collect whitespace from the beginning of the line
-  whitespace = regex_whitespace.match(text)
-
-  if whitespace:
-    whitespace = whitespace.group(1)
-    text = text[len(whitespace):]
-
-  text = text.rstrip()
-
-  if text:
-    if text[0] == TOKEN_TAG:
-      return parse_tag(text)
-    elif text[0] == TOKEN_CLASS:
-      print("div with class")
-    elif text[0] == TOKEN_ID:
-      print("div with id")
-  
-  # Empty/plaintext line
-  return Text(text)
-
-def parse_tag(text):
+class LineParser:
   tag = None
-  tag_name = None
+  text = ""
+  whitespace = ""
 
-  # Remove the % tag
-  text = text[1:]
+  def parse(self, text):
+    """ Parses a single line of text, and produces either a Tag or Text element.
 
-  if not text:
-    raise ParseError("Encountered a blank tag, expected a name")
+    This will remove leading/trailing whitespace.
+    """
 
-  tag_name = regex_letters.match(text)
+    self.tag = Tag()
+    self.text = text.rstrip()
+    self._collect_whitespace()
 
-  if not tag_name:
-    raise ParseError("Expected a name for the tag, but instead found %s" % text[0])
+    if text:
+      if text[0] == TOKEN_TAG:
+        return self._parse()
+      elif text[0] == TOKEN_CLASS:
+        print("div with class")
+      elif text[0] == TOKEN_ID:
+        print("div with id")
 
-  tag_name = tag_name.group(1)
+    # Plaintext or blank line
+    return Text(self.text)
 
-  tag = Tag(tag_name)
-  text = text[len(tag_name):]
+  def _collect_whitespace(self):
+    """ Removes any leading whitespace from the text and stores it
+    """
 
-  if not text:
-    return tag
+    ws = regex_whitespace.match(self.text)
 
-  # Search for classes and ID. Both are optional, but they must come in the order
-  # .class -> #id
-  while text[0] == TOKEN_CLASS:
-    class_name = regex_class_id.match(text)
+    if ws:
+      ws = ws.group(1)
+      self.text = self.text[len(ws):]
 
-    if not class_name:
-      raise ParseError("Encountered an empty class name")
+    self.whitespace = ws
 
-    class_name = class_name.group(1)
+  def _parse(self):
+    """ Parses a tag and any immediate text contents.
 
-    tag.classes.append(class_name)
-    text = text[len(class_name)+1:]
+    %p.style#id Lorem ipsum
 
-    if not text:
-      return tag
+    Produces: <p class="style" id="id">Lorem ipsum</p>
+    """
 
-  while text[0] == TOKEN_ID:
-    # An ID was already set
-    if tag.id:
-      raise ParseError("Element has more than 1 ID")
+    self._parse_tag_name()
+    self._parse_classes()
+    self._parse_id()
 
-    id_name = regex_class_id.match(text)
+    if self.text:
+      self._parse_attributes()
+      self._parse_remainder()
 
-    if not id_name:
-      raise ParseError("Encountered an empty ID")
+    return self.tag
 
-    id_name = id_name.group(1)
+  def _parse_tag_name(self):
+    """ Extracts the tag name and strips it from the text.
 
-    tag.id = id_name
-    text = text[len(id_name)+1:]
+    [%p].style#id
+    """
 
-    if not text:
-      return tag
+    # Remove the %
+    self.text = self.text[1:]
 
-  if text[0] == TOKEN_CLASS:
-    raise ParseError("Encountered a class after an ID (ID must be last)")
-  elif text[0] != " ":
-    raise ParseError("Expected a space, but found '%s' instead." % text[0])
+    if not self.text:
+      raise ParseError("Encountered a blank tag, expected a name")
 
-  text = text[1:].lstrip()
+    tag_name = regex_letters.match(self.text)
 
-  # There's some text leftover
-  if not regex_whitespace.fullmatch(text):
-    tag.add_child(Text(text))
+    if not tag_name:
+      raise ParseError("Expected a name for the tag, but instead found %s" % self.text[0])
 
-  return tag
+    tag_name = tag_name.group(1)
+
+    self.tag.tag = tag_name
+    self.text = self.text[len(tag_name):]
+
+  def _parse_classes(self):
+    """ Extracts a list of classes (if any)
+
+    %p[.style]#id
+    """
+
+    while self.text and self.text[0] == TOKEN_CLASS:
+      class_name = regex_class_id.match(self.text)
+
+      if not class_name:
+        raise ParseError("Encountered an empty class name")
+
+      class_name = class_name.group(1)
+
+      self.tag.classes.append(class_name)
+      self.text = self.text[len(class_name)+1:]
+
+  def _parse_id(self):
+    """ Extracts an ID for the element (if it has one)
+
+    %p.style[#id]
+    """
+
+    while self.text and self.text[0] == TOKEN_ID:
+      # An ID was already set
+      if self.tag.id:
+        raise ParseError("Element cannot have more than 1 ID")
+
+      id_name = regex_class_id.match(self.text)
+
+      if not id_name:
+        raise ParseError("Encountered an empty ID")
+
+      id_name = id_name.group(1)
+
+      self.tag.id = id_name
+      self.text = self.text[len(id_name)+1:]
+
+  def _parse_attributes(self):
+    """ Extracts attributes as a dictionary
+
+    %a(href="#" target="_blank")
+    => {
+      "href": "#",
+      "target": "_blank"
+    }
+    """
+
+    if self.text[0] == TOKEN_CLASS:
+      raise ParseError("Encountered a class after an ID (ID must be last)")
+    elif self.text[0] != " ":
+      raise ParseError("Expected a space, but found '%s' instead." % self.text[0])
+
+  def _parse_remainder(self):
+    """ Parses any plain text that may come after the element
+
+    %p.style#id [Lorem ipsum]
+    """
+
+    self.text = self.text[1:].lstrip()
+
+    if self.text:
+      self.tag.add_child(Text(self.text))
