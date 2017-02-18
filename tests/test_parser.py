@@ -56,3 +56,16 @@ class TestParser(unittest.TestCase):
     e = self.lp.parse("%input some text")
     assert len(e.children) == 1
     assert e.children[0].text == "some text"
+
+  def test_full_line(self):
+    e = self.lp.parse('%a.class#id(href="#" target="_blank" required var=123) Some extra text!')
+    assert e.tag == "a"
+    assert e.classes == ["class"]
+    assert e.id == "id"
+    assert e.children[0].text == "Some extra text!"
+    assert e.attrs == {
+        "href": "#",
+        "target": "_blank",
+        "required": None,
+        "var": 123
+      }
