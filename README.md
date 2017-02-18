@@ -1,5 +1,5 @@
 # hamplify
-A lightweight HAML-ish parser
+A lightweight HAML-ish parser for Django and Flask (Jinja2) templates.
 
 ### Running Tests
 Install the test dependencies 

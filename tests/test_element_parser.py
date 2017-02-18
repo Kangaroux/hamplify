@@ -1,10 +1,11 @@
 import unittest
 
 from hamplify.element import *
-from hamplify.parser import *
+from hamplify.parsers.config import ParseError
+from hamplify.parsers.tags import TagParser
 
 class TestParser(unittest.TestCase):
-  lp = LineParser()
+  lp = TagParser()
 
   def test_plaintext(self):
     e = self.lp.parse("      ")

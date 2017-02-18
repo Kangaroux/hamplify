@@ -1,7 +1,8 @@
 import unittest
 
 from hamplify.element import *
-from hamplify.parser import *
+from hamplify.parsers.attributes import AttributeParser
+from hamplify.parsers.config import ParseError
 
 class TestAttributeParser(unittest.TestCase):
   ap = AttributeParser()
