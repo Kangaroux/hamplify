@@ -212,23 +212,45 @@ class LineParser:
 
 class AttributeParser:
   STATE_DONE = 0
-
   STATE_PRE_NAME_WS = 1
   STATE_ATTR_NAME = 2
   STATE_POST_NAME_WS = 3
   STATE_PRE_VALUE_WS = 4
   STATE_VALUE = 5
 
+  def _reset(self):
+    self.attrs = {}
+    self.attr_name = None
+    self.attr_value = None
+    self.buffer = ""
+    self.char = None
+    self.pos = 0
+    self.state = self.STATE_PRE_NAME_WS
+    self.value_type = str
+    self.quote_char = None
+
   def parse(self, text):
+    """ Parses an attribute string, returning a 2-tuple of the attributes as a dictionary,
+    and whatever text was remaining after the attributes.
+
+    e.g. parse('(type="text" required)')
+
+    returns ({"type": "text", "required": "None"}, "")
+    """
+
+    # Reset the parser state
     self._reset()
+
     self.length = len(text)
     self.char = text[self.pos]
 
+    # This parser expects to the string to start right at the attributes
     if self.char != TOKEN_ATTR[0]:
       raise ParseError("Expected a space or '%s', but found '%s' instead." % (TOKEN_ATTR[0], self.char))
 
     self.pos += 1
 
+    # Iterate through each character, changing states as we progress
     while self.state != self.STATE_DONE and self.pos < self.length:
       self.char = text[self.pos]
 
@@ -248,17 +270,31 @@ class AttributeParser:
     if self.state != self.STATE_DONE:
       raise ParseError("Reached EOL while parsing attributes")
 
-    return (self.attrs, text[self.pos:])
+    return (self.attrs, text[self.pos:].lstrip())
 
   def push_attr(self):
-    self.attrs[self.attr_name] = self.attr_value
+    """ Adds a new attribute to the dictionary. If this is called before a value is
+    set, the value will be None
+    """
+
+    val = None
+
+    if self.attr_value is not None:
+      val = self.value_type(self.attr_value)
+
+    self.attrs[self.attr_name] = val
     self.attr_name = None
     self.attr_value = None
+    self.quote_char = None
+    self.value_type = str
     self.buffer = ""
 
   def _parse_pre_name_whitespace(self):
-    """ Do nothing if we found whitespace. Otherwise determine what
-    state we will switch to next
+    """ Skip whitespace and change states once we hit some characters that 
+    could be for an attribute name
+
+     vv        v
+    (  href="#" target="_blank")
     """
 
     if self.char == " ":
@@ -273,6 +309,10 @@ class AttributeParser:
       raise ParseError("Unexpected character while parsing attribute name: '%s'" % self.char)
 
   def _parse_attr_name(self):
+    """ Parses an attribute name, building up the buffer as it reads in characters.
+    Once a non-attribute character is hit, the buffer is dumped into attr_name.
+    """
+
     if 'a' <= self.char.lower() <= 'z' or self.char == "-":
       self.buffer += self.char
     else:
@@ -282,6 +322,7 @@ class AttributeParser:
         self.state = self.STATE_POST_NAME_WS
       elif self.char == "=":
         self.state = self.STATE_PRE_VALUE_WS
+        self.buffer = ""
       elif self.char == TOKEN_ATTR[1]:
         self.state = self.STATE_DONE
         self.push_attr()
@@ -289,48 +330,67 @@ class AttributeParser:
         raise ParseError("Unexpected character while parsing attribute name: '%s'" % self.char)
 
   def _parse_post_name_whitespace(self):
+    """ Skips whitespace after the attribute name until:
+
+    - An equal sign is found (which means this attribute has a value)
+    - Attribute chars are found (which means no value, and another attribute)
+    """
+
     if self.char == " ":
       return
 
-    if 'a' <= self.char.lower() <= 'z':
+    if 'a' <= self.char.lower() <= 'z' or self.char == "-":
+      self.push_attr()
       self.state = self.STATE_ATTR_NAME
       self.buffer += self.char
-    elif self.char == TOKEN_ATTR[1]:
-      self.state = self.STATE_DONE
-      self.push_attr()
     elif self.char == "=":
       self.state = self.STATE_PRE_VALUE_WS
-    else:
-      raise ParseError("Unexpected character while parsing attribute: '%s'" % self.char)
-
-  def _parse_pre_value_whitespace(self):
-    if self.char == " ":
-      return
-
-    if self.char == "\"":
-      self.state = self.STATE_VALUE
       self.buffer = ""
     elif self.char == TOKEN_ATTR[1]:
       self.state = self.STATE_DONE
       self.push_attr()
     else:
-      raise ParseError("Unexpected character while parsing attribute: '%s'" % self.char)
+      raise ParseError("Unexpected character while parsing: '%s'" % self.char)
+
+  def _parse_pre_value_whitespace(self):
+    """ Skips whitespace before a value. If a character or quote is encountered, then the
+    value is set to be a string. Otherwise the value is set to be an int
+    """
+
+    if self.char == " ":
+      return
+
+    if self.char == "\"":
+      self.quote_char = "\""
+      self.state = self.STATE_VALUE
+    elif self.char == "\'":
+      self.quote_char = "\'"
+      self.state = self.STATE_VALUE
+    elif '0' <= self.char <= '9':
+      self.value_type = int
+      self.buffer += self.char
+      self.state = self.STATE_VALUE
+    elif self.char == TOKEN_ATTR[1]:
+      raise ParseError("Unexpected end of attributes (do you have an extra equals sign?)")
+    else:
+      raise ParseError("Unexpected character while parsing: '%s'" % self.char)
 
   def _parse_value(self):
-    if self.char == "\"":
+    """ Parses the attribute's value. If the value is wrapped in quotes, extract
+    every character until we hit the closing quote. If it's a number, extract values
+    until we hit a space/other boundary
+    """
+
+    # If we hit the other quote char, or there was no quote char and we just hit some whitespace
+    if self.char == self.quote_char or self.char == " " and not self.quote_char:
       self.state = self.STATE_PRE_NAME_WS
       self.attr_value = self.buffer
       self.push_attr()
+    elif not self.quote_char and self.char == TOKEN_ATTR[1]:
+      self.state = self.STATE_DONE
+      self.attr_value = self.buffer
+      self.push_attr()
+    elif not ('0' <= self.char <= '9') and self.value_type == int:
+      raise ParseError("String attributes must be surrounded with quotes")
     else:
       self.buffer += self.char
-
-  def _reset(self):
-    self.attrs = {}
-    self.attr_name = None
-    self.attr_value = None
-    self.buffer = ""
-    self.char = None
-    self.has_value = False
-    self.pos = 0
-    self.state = self.STATE_PRE_NAME_WS
-    self.value_type = None
