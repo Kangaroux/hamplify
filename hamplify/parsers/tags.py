@@ -9,10 +9,15 @@ regex_letters = re.compile(r'([a-zA-Z]+)')
 regex_class_id = re.compile(r'(?:\.|#)([a-zA-Z0-9_-]*)')
 
 class TagParser:
-  tag = None
-  text = ""
-  whitespace = ""
+  """ Regex parser for parsing out a %tag. 
+  """
+
   ap = AttributeParser()
+
+  def _reset(self):
+    self.tag = Tag()
+    self.text = None
+    self.whitespace = None
 
   def parse(self, text):
     """ Parses a single line of text, and produces either a Tag or Text element.
@@ -20,7 +25,7 @@ class TagParser:
     This will remove leading/trailing whitespace.
     """
 
-    self.tag = Tag()
+    self._reset()
     self.text = text.rstrip()
     self._collect_whitespace()
 

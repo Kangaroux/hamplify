@@ -4,7 +4,7 @@ from hamplify.element import *
 from hamplify.parsers.config import ParseError
 from hamplify.parsers.tags import TagParser
 
-class TestParser(unittest.TestCase):
+class TestTagParser(unittest.TestCase):
   lp = TagParser()
 
   def test_plaintext(self):

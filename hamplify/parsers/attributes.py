@@ -1,6 +1,9 @@
 from .config import *
 
 class AttributeParser:
+  """ State-based parser for extracting attributes from a tag.
+  """
+
   STATE_DONE = 0
   STATE_PRE_NAME_WS = 1
   STATE_ATTR_NAME = 2
@@ -25,7 +28,7 @@ class AttributeParser:
 
     e.g. parse('(type="text" required)')
 
-    returns ({"type": "text", "required": "None"}, "")
+    returns ({"type": "text", "required": None}, "")
     """
 
     # Reset the parser state
