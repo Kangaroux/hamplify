@@ -10,10 +10,6 @@ class TestTagParser(unittest.TestCase):
   def test_plaintext(self):
     e = self.lp.parse("      ")
     assert type(e) is Text
-    assert e.text == ""
-
-    e = self.lp.parse("     some Plain text.!@#$%^&*()")
-    assert e.text == "some Plain text.!@#$%^&*()"
 
   def test_bad_tag_name(self):
     with self.assertRaises(ParseError):

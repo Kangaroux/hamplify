@@ -4,7 +4,6 @@ from .attributes import AttributeParser
 from .config import *
 from hamplify.element import Tag, Text
 
-regex_whitespace = re.compile(r'([ \t]+)')
 regex_letters = re.compile(r'([a-zA-Z]+)')
 regex_class_id = re.compile(r'(?:\.|#)([a-zA-Z0-9_-]*)')
 
@@ -17,17 +16,13 @@ class TagParser:
   def _reset(self):
     self.tag = Tag()
     self.text = None
-    self.whitespace = None
 
   def parse(self, text):
     """ Parses a single line of text, and produces either a Tag or Text element.
-
-    This will remove leading/trailing whitespace.
     """
 
     self._reset()
     self.text = text.rstrip()
-    self._collect_whitespace()
 
     if text:
       if text[0] == TOKEN_TAG:
@@ -39,18 +34,6 @@ class TagParser:
 
     # Plaintext or blank line
     return Text(self.text)
-
-  def _collect_whitespace(self):
-    """ Removes any leading whitespace from the text and stores it
-    """
-
-    ws = regex_whitespace.match(self.text)
-
-    if ws:
-      ws = ws.group(1)
-      self.text = self.text[len(ws):]
-
-    self.whitespace = ws
 
   def _parse(self):
     """ Parses a tag and any immediate text contents.
