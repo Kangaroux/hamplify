@@ -27,15 +27,14 @@ class TagParser:
     if text:
       if text.startswith(TOKEN_TAG):
         return self._parse()
-      elif text.startswith(TOKEN_CLASS):
-        print("div with class")
-      elif text.startswith(TOKEN_ID):
-        print("div with id")
+      elif text.startswith(TOKEN_CLASS) or text.startswith(TOKEN_ID):
+        self.tag.tag = "div"
+        return self._parse(False)
 
     # Plaintext or blank line
     return Text(self.text)
 
-  def _parse(self):
+  def _parse(self, parse_name=True):
     """ Parses a tag and any immediate text contents.
 
     %p.style#id Lorem ipsum
@@ -43,7 +42,9 @@ class TagParser:
     Produces: <p class="style" id="id">Lorem ipsum</p>
     """
 
-    self._parse_tag_name()
+    if parse_name:
+      self._parse_tag_name()
+      
     self._parse_classes()
     self._parse_id()
     self._parse_attributes()

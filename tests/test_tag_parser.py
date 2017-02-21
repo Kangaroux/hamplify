@@ -54,6 +54,15 @@ class TestTagParser(unittest.TestCase):
     assert len(e.children) == 1
     assert e.children[0].text == "some text"
 
+  def test_no_tag_name(self):
+    e = self.lp.parse(".class#id some text")
+    assert e.classes == ["class"]
+    assert e.id == "id"
+    assert e.children[0].text == "some text"
+
+    e = self.lp.parse("#test")
+    assert e.id == "test"
+
   def test_full_line(self):
     e = self.lp.parse('%a.class#id(href="#" target="_blank" required var=123) Some extra text!')
     assert e.tag == "a"
