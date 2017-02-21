@@ -25,11 +25,11 @@ class TagParser:
     self.text = text.rstrip()
 
     if text:
-      if text[0] == TOKEN_TAG:
+      if text.startswith(TOKEN_TAG):
         return self._parse()
-      elif text[0] == TOKEN_CLASS:
+      elif text.startswith(TOKEN_CLASS):
         print("div with class")
-      elif text[0] == TOKEN_ID:
+      elif text.startswith(TOKEN_ID):
         print("div with id")
 
     # Plaintext or blank line
@@ -56,8 +56,8 @@ class TagParser:
     [%p].style#id
     """
 
-    # Remove the %
-    self.text = self.text[1:]
+    # Remove the tag token
+    self.text = self.text[len(TOKEN_TAG):]
 
     if not self.text:
       raise ParseError("Encountered a blank tag, expected a name")
@@ -78,7 +78,7 @@ class TagParser:
     %p[.style]#id
     """
 
-    while self.text and self.text[0] == TOKEN_CLASS:
+    while self.text and self.text.startswith(TOKEN_CLASS):
       class_name = regex_class_id.match(self.text)
 
       if not class_name:
@@ -95,7 +95,7 @@ class TagParser:
     %p.style[#id]
     """
 
-    while self.text and self.text[0] == TOKEN_ID:
+    while self.text and self.text.startswith(TOKEN_ID):
       # An ID was already set
       if self.tag.id:
         raise ParseError("Element cannot have more than 1 ID")
@@ -108,16 +108,16 @@ class TagParser:
       id_name = id_name.group(1)
 
       self.tag.id = id_name
-      self.text = self.text[len(id_name)+1:]
+      self.text = self.text[len(id_name) + len(TOKEN_ID):]
 
-    if self.text and self.text[0] == TOKEN_CLASS:
+    if self.text and self.text.startswith(TOKEN_CLASS):
       raise ParseError("Encountered a class after an ID (ID must be last)")
 
   def _parse_attributes(self):
     if not self.text:
       return
 
-    if self.text[0] == TOKEN_ATTR_WRAPPER[0]:
+    if self.text.startswith(TOKEN_ATTR_WRAPPER[0]):
       (attrs, text) = self.ap.parse(self.text)
 
       self.tag.attrs = attrs
