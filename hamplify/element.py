@@ -12,9 +12,17 @@ class Node(Element):
     self.children.append(e)
     e.parent = self
 
+    return self
+
 class Text(Element):
   def __init__(self, text=""):
     self.text = text
+
+class Comment(Node):
+  def __init__(self, render_comment=True):
+    super().__init__()
+    
+    self.render_comment = render_comment
 
 class Tag(Node):
   def __init__(self, tag="div", classes=None, dom_id="", attrs=None):
