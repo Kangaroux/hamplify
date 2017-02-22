@@ -39,10 +39,13 @@ class Parser:
 
       if not line:
         self._push(Text(line))
-      elif line[0] == TOKEN_TAG:
+      elif line.startswith(TOKEN_TAG):
         self._push(self.tag_parser.parse(line))
-      elif line[0] in BLOCKS:
-        self._push(self.block_parser.parse(line))
+      else:
+        for b in BLOCKS:
+          if line.startswith(b):
+            self._push(self.block_parser.parse(line))
+            break
 
   def _push(self, element):
     """ Pushes a node into the stack and updates the cursor

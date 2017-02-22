@@ -3,7 +3,7 @@ import re
 from .config import *
 from hamplify.element import *
 
-regex_block = re.compile(r'- *(\w)(.*)')
+regex_block = re.compile(r'- *(\w+)(.*)')
 
 class BlockParser:
   def parse(self, text):
@@ -13,5 +13,9 @@ class BlockParser:
     elif text.startswith(TOKEN_COMMENT):
       return Comment(render_comment=False).add_child(Text(text[len(TOKEN_COMMENT):]))
 
-    # match = regex_block.match(text)
-    # print(match.groups())
+    match = regex_block.match(text)
+
+    if not match:
+      raise ParseError("Encountered a block with no arguments")
+
+    return Block(match.group(1), match.group(2).strip())

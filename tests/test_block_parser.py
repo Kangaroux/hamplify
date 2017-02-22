@@ -9,8 +9,17 @@ class TestBlockparser(unittest.TestCase):
 
   def test_html_comment(self):
     self.assertIsInstance(self.bp.parse("-#"), Comment)
-    self.assertEquals(" A comment", self.bp.parse("-# A comment").children[0].text)
+    assert " A comment" == self.bp.parse("-# A comment").children[0].text
 
   def test_comment(self):
     self.assertIsInstance(self.bp.parse("/"), Comment)
-    self.assertEquals(" %element.class", self.bp.parse("/ %element.class").children[0].text)
+    assert " %element.class" == self.bp.parse("/ %element.class").children[0].text
+
+  def test_block(self):
+    block = self.bp.parse("-include")
+    assert block.name == "include"
+    assert block.args == ""
+
+    block = self.bp.parse("- for x in list")
+    assert block.name == "for"
+    assert block.args == "x in list"
