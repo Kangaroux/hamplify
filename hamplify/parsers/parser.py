@@ -40,7 +40,11 @@ class Parser:
           self._pop()
           level -= 1
 
-      self._push(self._parse_line(line))
+      element = self._parse_line(line)
+
+      # Skip blank lines
+      if not (type(element) is Text and element.text == ""):
+        self._push(element)
 
     return self.root
 

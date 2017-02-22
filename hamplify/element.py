@@ -7,7 +7,11 @@ class Element:
 
   def set_parent(self, parent):
     self.parent = parent
-    self.depth = parent.depth + 1
+
+    if type(parent) is RootNode:
+      self.depth = 0
+    else:
+      self.depth = parent.depth + 1
 
   def render(self):
     """ Renders the element as text
@@ -40,7 +44,7 @@ class Node(Element):
 
     if self.render_children:
       text += self._render_children()
-
+    
     text += self._post_render()
 
     return text

@@ -53,8 +53,6 @@ class TestFullParser(unittest.TestCase):
       self.p._get_indentation("  2 spaces instead of 4")
 
   def test_multiline(self):
-    self.p._reset()
-
     html = self.p.parse("""
 %html
   %head
@@ -62,7 +60,7 @@ class TestFullParser(unittest.TestCase):
   %body
     .container
       %p some text
-      """).render()
+      """)
 
-    assert (html == "<html><head><title>My cool title</title></head><body>"
+    assert (html.render() == "<html><head><title>My cool title</title></head><body>"
       "<div class=\"container\"><p>some text</p></div></body></html>")
