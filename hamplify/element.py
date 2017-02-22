@@ -34,6 +34,8 @@ class Comment(Node):
   def __init__(self, render_comment=True):
     super().__init__()
 
+    # Whether this comment should be rendered or not. Comments that are rendered
+    # appear as an html comment <!-- --> 
     self.render_comment = render_comment
 
 class BaseBlock:

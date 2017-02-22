@@ -51,3 +51,15 @@ class TestFullParser(unittest.TestCase):
 
     with self.assertRaises(ParseError):
       self.p._get_indentation("  2 spaces instead of 4")
+
+  def test_multiline(self):
+    self.p._reset()
+
+    tree = self.p.parse("""
+%html
+  %head
+    %title My cool title
+  %body
+    .container
+      %p some text
+      """)

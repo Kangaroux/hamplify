@@ -24,6 +24,7 @@ class Parser:
     text = regex_newline.split(text)
 
     for line in text:
+      print(line)
       indentation = self._get_indentation(line)
       line = line.lstrip()
 
@@ -32,31 +33,45 @@ class Parser:
       # Indentation can only increase at a rate of once per line
       if indentation > (level + 1):
         raise ParseError("Indentation jumped too much (previous level was %d,"
-          " now at %d)" % (level, floored))
-      else:
+          " now at %d)" % (level, indentation))
+      elif indentation <= level:
         # If the indentation didn't increase, then some elements 
         # from the stack need to be popped
-        while indentation <= level:
+        while indentation <= level and level > 0:
           self._pop()
           level -= 1
 
-      if not line:
-        self._push(Text(line))
-      elif line.startswith(TOKEN_TAG):
-        self._push(self.tag_parser.parse(line))
-      else:
-        for b in BLOCKS:
-          if line.startswith(b):
-            self._push(self.block_parser.parse(line))
-            break
+      self._push(self._parse_line(line))
 
-  def _push(self, element):
-    """ Pushes a node into the stack and updates the cursor
+  def _parse_line(self, line):
+    """ Checks if the line starts with any tokens that designate a tag
+    or block, and parses it if it does. Otherwise returns a text object
     """
 
-    self.stack.append(element)
+    for t in TAG_TOKENS:
+      if line.startswith(t):
+        return self.tag_parser.parse(line)
+
+    for b in BLOCK_TOKENS:
+      if line.startswith(b):
+        return self.block_parser.parse(line)
+
+    return Text(line)
+
+  def _push(self, element):
+    """ Adds the element to the current element under the cursor, and pushes the
+    element onto the stack if the element is a node (i.e. it can have children)
+    """
+
     self.cursor.add_child(element)
-    self.cursor = element
+
+    # The stack is only so we can establish a parent/child hierarchy.
+    # Elements which can't have children don't belong on the stack
+    if isinstance(element, Node):
+      self.stack.append(element)
+      self.cursor = element
+
+    print(self._indent_level())
 
   def _pop(self):
     """ Removes the element at the top of the stack and returns it
@@ -65,8 +80,7 @@ class Parser:
     if len(self.stack) == 1:
       raise Exception("Tried to pop stack while it was empty")
 
-    e = self._top()
-    self.stack = self.stack[:-1]
+    e = self.stack.pop()
     self.cursor = self._top()
 
     return e
@@ -78,10 +92,12 @@ class Parser:
     return self.stack[-1]
 
   def _indent_level(self):
-    """ Gets the current indentation level
+    """ Gets the current indentation level.
     """
 
-    return len(self.stack)
+    # Subtract 2 from the stack to get the actual level. The parse tree root is always
+    # on the stack, and the root node(s) in the document cannot have any indentation
+    return max(len(self.stack) - 2, 0)
 
   def _get_indentation(self, line):
     """ Calculates the indentation level of the line
