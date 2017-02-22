@@ -26,7 +26,7 @@ class TestTagParser(unittest.TestCase):
     assert type(e) is Tag
     assert e.tag == "button"
     assert e.classes == []
-    assert e.id == ""
+    assert e.id == None
     assert e.children == []
 
   def test_bad_class(self):

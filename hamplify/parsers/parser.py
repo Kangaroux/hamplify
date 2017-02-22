@@ -16,7 +16,7 @@ class Parser:
     self.ws_per_indent = None
     self.ws_char = None
 
-    self.root = Node()
+    self.root = RootNode()
     self.cursor = self.root
     self.stack = [self.root]
 
@@ -24,7 +24,6 @@ class Parser:
     text = regex_newline.split(text)
 
     for line in text:
-      print(line)
       indentation = self._get_indentation(line)
       line = line.lstrip()
 
@@ -42,6 +41,8 @@ class Parser:
           level -= 1
 
       self._push(self._parse_line(line))
+
+    return self.root
 
   def _parse_line(self, line):
     """ Checks if the line starts with any tokens that designate a tag
@@ -70,8 +71,6 @@ class Parser:
     if isinstance(element, Node):
       self.stack.append(element)
       self.cursor = element
-
-    print(self._indent_level())
 
   def _pop(self):
     """ Removes the element at the top of the stack and returns it

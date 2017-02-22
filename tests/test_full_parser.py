@@ -55,11 +55,14 @@ class TestFullParser(unittest.TestCase):
   def test_multiline(self):
     self.p._reset()
 
-    tree = self.p.parse("""
+    html = self.p.parse("""
 %html
   %head
     %title My cool title
   %body
     .container
       %p some text
-      """)
+      """).render()
+
+    assert (html == "<html><head><title>My cool title</title></head><body>"
+      "<div class=\"container\"><p>some text</p></div></body></html>")
