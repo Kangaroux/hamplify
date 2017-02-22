@@ -1,9 +1,12 @@
-import math
+import math, re
 
 from .config import *
 from hamplify.element import *
 from hamplify.parsers.block import BlockParser
 from hamplify.parsers.tags import TagParser
+
+# Supports CRLF and LF newlines
+regex_newline = re.compile(r"\r?\n")
 
 class Parser:
   tag_parser = TagParser()
@@ -18,7 +21,7 @@ class Parser:
     self.stack = [self.root]
 
   def parse(self, text):
-    text = text.split("\n")
+    text = regex_newline.split(text)
 
     for line in text:
       indentation = self._get_indentation(line)
