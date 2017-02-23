@@ -29,18 +29,19 @@ class Parser:
       indentation = self._get_indentation(line)
       line = line.lstrip()
 
-      level = self._indent_level()
+      if indentation is not None:
+        level = self._indent_level()
 
-      # Indentation can only increase at a rate of once per line
-      if indentation > (level + 1):
-        raise ParseError("Indentation jumped too much (previous level was %d,"
-          " now at %d)" % (level, indentation))
-      elif indentation <= level:
-        # If the indentation didn't increase, then some elements 
-        # from the stack need to be popped
-        while indentation <= level and level > 0:
-          self._pop()
-          level -= 1
+        # Indentation can only increase at a rate of once per line
+        if indentation > (level + 1):
+          raise ParseError("Indentation jumped too much (previous level was %d,"
+            " now at %d)" % (level, indentation))
+        elif indentation <= level:
+          # If the indentation didn't increase, then some elements 
+          # from the stack need to be popped
+          while indentation <= level and level > 0:
+            self._pop()
+            level -= 1
 
       element = self._parse_line(line)
 
@@ -144,4 +145,5 @@ class Parser:
 
       last = c
 
-    return 0
+    # This is a blank line (don't count indentation)
+    return None

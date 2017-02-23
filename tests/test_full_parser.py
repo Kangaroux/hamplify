@@ -7,12 +7,18 @@ from hamplify.parsers.parser import Parser
 class TestFullParser(unittest.TestCase):
   p = Parser()
 
+  def test_cant_pop_empty_stack(self):
+    self.p._reset()
+
+    with self.assertRaises(Exception):
+      self.p._pop()
+
   def test_single_line_indentation(self):
     self.p._reset()
-    assert 0 == self.p._get_indentation("")
+    assert None == self.p._get_indentation("")
 
     self.p._reset()
-    assert 0 == self.p._get_indentation("  ")
+    assert None == self.p._get_indentation("  ")
 
     self.p._reset()
     assert 0 == self.p._get_indentation("text")
@@ -27,11 +33,8 @@ class TestFullParser(unittest.TestCase):
     assert 0 == self.p._get_indentation("some text")
     assert 1 == self.p._get_indentation("  Indented")
     assert 2 == self.p._get_indentation("    Some more")
-    assert 0 == self.p._get_indentation("")
+    assert None == self.p._get_indentation("        ")
     assert 1 == self.p._get_indentation("  Back down")
-
-    with self.assertRaises(ParseError):
-      self.p._get_indentation("     Too much indentation (at 3 from 1)")
 
   def test_mixed_indentation(self):
     self.p._reset()
@@ -55,17 +58,29 @@ class TestFullParser(unittest.TestCase):
     with self.assertRaises(ParseError):
       self.p._get_indentation("  2 spaces instead of 4")
 
+  def test_indentation_jump(self):
+    with self.assertRaises(ParseError):
+      self.p.parse("""
+!!!
+%html
+  %head
+      %title too much indentation
+        """)
+
   def test_multiline(self):
     html = self.p.parse("""
-!!! 5
+!!!
 %html
   %head
     %title My cool title
   %body
     .container
       %p some text
-        / comment you can't see %tag.blah
+      / comment you can't see %tag.blah
+        still a comment
+
+      -# HTML comment
       """)
 
     assert (html.render() == "<!DOCTYPE html><html><head><title>My cool title</title></head><body>"
-      "<div class=\"container\"><p>some text</p></div></body></html>")
+      "<div class=\"container\"><p>some text</p><!-- HTML comment --></div></body></html>")

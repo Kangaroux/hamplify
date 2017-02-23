@@ -4,7 +4,7 @@ from hamplify.element import *
 from hamplify.parsers.config import ParseError
 from hamplify.parsers.doctype import DoctypeParser
 
-class TestBlockparser(unittest.TestCase):
+class TestDoctypeParser(unittest.TestCase):
   dtp = DoctypeParser()
 
   def test_common_doctypes(self):

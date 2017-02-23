@@ -4,7 +4,7 @@ from hamplify.element import *
 from hamplify.parsers.config import ParseError
 from hamplify.parsers.block import BlockParser
 
-class TestBlockparser(unittest.TestCase):
+class TestBlockParser(unittest.TestCase):
   bp = BlockParser()
 
   def test_html_comment(self):
@@ -24,7 +24,7 @@ class TestBlockparser(unittest.TestCase):
   def test_block(self):
     with self.assertRaises(ParseError):
       self.bp.parse("- ")
-      
+
     block = self.bp.parse("-include")
     assert block.name == "include"
     assert block.args == ""
