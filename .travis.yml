@@ -1,9 +1,9 @@
 language: python
 python:
-#  - "2.6"
-#  - "2.7"
-  - "3.2"
-  - "3.3"
+#  - "2.6"      Not currently supported
+#  - "2.7"      Not currently supported
+#  - "3.2"      Not supported by py.test
+#  - "3.3"      Not supported by py.test
   - "3.4"
   - "3.5"
   - "3.6"
