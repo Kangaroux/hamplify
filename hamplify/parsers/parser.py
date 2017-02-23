@@ -3,6 +3,7 @@ import math, re
 from .config import *
 from hamplify.element import *
 from hamplify.parsers.block import BlockParser
+from hamplify.parsers.doctype import DoctypeParser
 from hamplify.parsers.tags import TagParser
 
 # Supports CRLF and LF newlines
@@ -11,6 +12,7 @@ regex_newline = re.compile(r"\r?\n")
 class Parser:
   tag_parser = TagParser()
   block_parser = BlockParser()
+  doctype_parser = DoctypeParser()
 
   def _reset(self):
     self.ws_per_indent = None
@@ -60,6 +62,9 @@ class Parser:
     for b in BLOCK_TOKENS:
       if line.startswith(b):
         return self.block_parser.parse(line)
+
+    if line.startswith(TOKEN_DOCTYPE):
+      return self.doctype_parser.parse(line)
 
     return Text(line)
 

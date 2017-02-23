@@ -54,6 +54,7 @@ class TestFullParser(unittest.TestCase):
 
   def test_multiline(self):
     html = self.p.parse("""
+!!! 5
 %html
   %head
     %title My cool title
@@ -62,5 +63,5 @@ class TestFullParser(unittest.TestCase):
       %p some text
       """)
 
-    assert (html.render() == "<html><head><title>My cool title</title></head><body>"
+    assert (html.render() == "<!DOCTYPE html><html><head><title>My cool title</title></head><body>"
       "<div class=\"container\"><p>some text</p></div></body></html>")
