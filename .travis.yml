@@ -10,4 +10,6 @@ python:
 
 install: "pip install -r reqs/test.txt"
 
-script: pytest
+script: pytest --cov=hamplify
+
+after_success: coveralls
