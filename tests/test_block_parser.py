@@ -9,13 +9,22 @@ class TestBlockparser(unittest.TestCase):
 
   def test_html_comment(self):
     self.assertIsInstance(self.bp.parse("-#"), Comment)
-    assert " A comment" == self.bp.parse("-# A comment").children[0].text
+
+    e = self.bp.parse("-# A comment")
+    assert " A comment" == e.children[0].text
+    assert "<!-- A comment -->" == e.render()
 
   def test_comment(self):
     self.assertIsInstance(self.bp.parse("/"), Comment)
-    assert " %element.class" == self.bp.parse("/ %element.class").children[0].text
+
+    e = self.bp.parse("/ %element.class")
+    assert " %element.class" == e.children[0].text
+    assert "" == e.render()
 
   def test_block(self):
+    with self.assertRaises(ParseError):
+      self.bp.parse("- ")
+      
     block = self.bp.parse("-include")
     assert block.name == "include"
     assert block.args == ""

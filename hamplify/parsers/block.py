@@ -6,6 +6,10 @@ from hamplify.element import *
 regex_block = re.compile(r'- *(\w+)(.*)')
 
 class BlockParser:
+  """ Blocks are used in template engines like Django Jinja2 for providing 
+  some realtime processing of context data
+  """
+
   def parse(self, text):
     # Handle comment blocks
     if text.startswith(TOKEN_HTML_COMMENT):

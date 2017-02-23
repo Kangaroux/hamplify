@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 from .config import *
 
 class AttributeParser:
@@ -12,7 +14,7 @@ class AttributeParser:
   STATE_VALUE = 5
 
   def _reset(self):
-    self.attrs = {}
+    self.attrs = OrderedDict()
     self.attr_name = None
     self.attr_value = None
     self.buffer = ""

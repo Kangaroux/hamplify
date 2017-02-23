@@ -30,6 +30,9 @@ class TestFullParser(unittest.TestCase):
     assert 0 == self.p._get_indentation("")
     assert 1 == self.p._get_indentation("  Back down")
 
+    with self.assertRaises(ParseError):
+      self.p._get_indentation("     Too much indentation (at 3 from 1)")
+
   def test_mixed_indentation(self):
     self.p._reset()
     self.p.ws_per_indent = 2
@@ -61,6 +64,7 @@ class TestFullParser(unittest.TestCase):
   %body
     .container
       %p some text
+        / comment you can't see %tag.blah
       """)
 
     assert (html.render() == "<!DOCTYPE html><html><head><title>My cool title</title></head><body>"

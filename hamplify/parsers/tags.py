@@ -81,11 +81,10 @@ class TagParser:
 
     while self.text and self.text.startswith(TOKEN_CLASS):
       class_name = regex_class_id.match(self.text)
+      class_name = class_name.group(1)
 
       if not class_name:
         raise ParseError("Encountered an empty class name")
-
-      class_name = class_name.group(1)
 
       self.tag.classes.append(class_name)
       self.text = self.text[len(class_name)+1:]
@@ -102,11 +101,10 @@ class TagParser:
         raise ParseError("Element cannot have more than 1 ID")
 
       id_name = regex_class_id.match(self.text)
+      id_name = id_name.group(1)
 
       if not id_name:
         raise ParseError("Encountered an empty ID")
-
-      id_name = id_name.group(1)
 
       self.tag.id = id_name
       self.text = self.text[len(id_name) + len(TOKEN_ID):]

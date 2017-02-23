@@ -1,3 +1,7 @@
+from collections import OrderedDict
+
+from hamplify.parsers.config import ParseError
+
 class Element:
   """ Base element
   """
@@ -105,7 +109,7 @@ class Comment(Node):
 
   def _post_render(self):
     if self.render_children:
-      return "-->"
+      return " -->"
     else:
       return ""
 
@@ -141,7 +145,7 @@ class Tag(Node):
   def __init__(self, tag="div", classes=None, dom_id=None, attrs=None):
     super().__init__()
 
-    self.attrs = attrs or {}
+    self.attrs = attrs or OrderedDict()
     self.classes = classes or []
     self.id = dom_id
     self.tag = tag
@@ -149,22 +153,23 @@ class Tag(Node):
   def _pre_render(self):
     text = "<%s" % self.tag
 
-    # Combine the shorthand classes with ones in the attributes
-    classes = self.attrs.get("class", "")
-
-    if classes:
-      classes += " "
-
-    classes += " ".join(self.classes)
-
-    if classes:
-      self.attrs["class"] = classes
-
     if self.id:
       text += " id=\"%s\"" % self.id
 
+    classes = self.get_class_string()
+
+    if classes:
+      text += " class=\"%s\"" % classes
+    
     # Add the attributes
     for k, v in self.attrs.items():
+      # Skip if the ID was already defined
+      if k == "id" and self.id:
+        raise ParseError("Tag has both an #id and an id='', not sure which to use")
+      elif k == "class":
+        # Classes are inserted manually, above
+        continue
+
       if v is None:
         text += " %s" % k
       elif type(v) is int:
@@ -178,3 +183,17 @@ class Tag(Node):
 
   def _post_render(self):
     return "</%s>" % self.tag
+
+  def get_class_string(self):
+    """ Combines classes with the .class notation with the classes in the attribute
+    dictionary, and returns it as a string
+    """
+
+    classes = self.attrs.get("class", "")
+
+    if classes and self.classes:
+      classes += " "
+
+    classes += " ".join(self.classes)
+
+    return classes

@@ -15,7 +15,7 @@ class TestAttributeParser(unittest.TestCase):
     self.assertEquals(self.ap.parse('(   )'),
       ({}, ""))
 
-    self.assertEquals(self.ap.parse('( href  = "#" )'),
+    self.assertEquals(self.ap.parse('( href  = \'#\' )'),
       ({
         "href": "#"
       }, ""))
@@ -48,7 +48,7 @@ class TestAttributeParser(unittest.TestCase):
         "readonly": None
       }, ""))
 
-    self.assertEquals(self.ap.parse('(required autocomplete)'),
+    self.assertEquals(self.ap.parse('(required autocomplete )'),
       ({
         "required": None,
         "autocomplete": None
@@ -87,6 +87,9 @@ class TestAttributeParser(unittest.TestCase):
 
     with self.assertRaises(ParseError):
       self.ap.parse('(incomplete=)')
+
+    with self.assertRaises(ParseError):
+      self.ap.parse('(incomplete ^)')
 
     with self.assertRaises(ParseError):
       self.ap.parse('(incomplete="test)')

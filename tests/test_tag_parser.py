@@ -37,6 +37,15 @@ class TestTagParser(unittest.TestCase):
     e = self.lp.parse("%input.my_Class")
     assert e.classes == ["my_Class"]
 
+    e = self.lp.parse(".class(class='another')")
+    assert e.render() == '<div class="another class"></div>'
+
+    with self.assertRaises(ParseError):
+      e = self.lp.parse(".#id")
+
+    with self.assertRaises(ParseError):
+      self.lp.parse("%input#")
+
   def test_multiple_classes(self):
     e = self.lp.parse("%input.class1.class2.class3")
     assert e.classes == ["class1", "class2", "class3"]
@@ -47,7 +56,11 @@ class TestTagParser(unittest.TestCase):
 
   def test_id(self):
     e = self.lp.parse("%input#id-")
-    assert e.id == "id-"    
+    assert e.id == "id-"
+
+    # Unsure how to deal with a tag that has more than 1 ID
+    with self.assertRaises(ParseError):
+      self.lp.parse("#id(id='another-id')").render()
 
   def test_remainder(self):
     e = self.lp.parse("%input some text")
@@ -75,3 +88,7 @@ class TestTagParser(unittest.TestCase):
         "required": None,
         "var": 123
       }
+
+  def test_render(self):
+    assert (self.lp.parse("%a.class#id(href='#'  data-blah=1234 required )").render()
+      == '<a id="id" class="class" href="#" data-blah=1234 required></a>')
