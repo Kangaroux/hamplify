@@ -16,6 +16,9 @@ class Parser:
   doctype_parser = DoctypeParser()
   comment_parser = CommentParser()
 
+  def __init__(self):
+    self._reset()
+
   def _reset(self):
     self.ws_per_indent = None
     self.ws_char = None
