@@ -1,17 +1,22 @@
 import re
 
 from .attributes import AttributeParser
+from .base import BaseParser
 from hamplify.config import *
 from hamplify.element import SelfClosingTag, Tag, Text
 
 regex_tag_name = re.compile(r'([a-zA-Z][a-zA-Z0-9]*)')
 regex_class_id = re.compile(r'(?:\.|#)([a-zA-Z0-9_-]*)')
 
-class TagParser:
+class TagParser(BaseParser):
   """ Regex parser for parsing out a %tag. 
   """
 
-  ap = AttributeParser()
+  def __init__(self, options=None):
+    super(TagParser, self).__init__(options)
+
+    self.ap = AttributeParser(options)
+    self._reset()
 
   def _reset(self):
     self.tag = None

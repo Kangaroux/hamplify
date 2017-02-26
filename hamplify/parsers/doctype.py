@@ -1,5 +1,6 @@
 import re
 
+from .base import BaseParser
 from hamplify.config import *
 from hamplify.element import Text
 
@@ -14,7 +15,10 @@ doctypes = (
   (re.compile(r'!!! rdfa$'), '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML+RDFa 1.0//EN" "http://www.w3.org/MarkUp/DTD/xhtml-rdfa-1.dtd">')
 )
 
-class DoctypeParser:
+class DoctypeParser(BaseParser):
+  def __init__(self, options=None):
+    super(DoctypeParser, self).__init__(options)
+    
   def parse(self, text):
     text = text.strip().lower()
 

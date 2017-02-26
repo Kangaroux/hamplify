@@ -1,5 +1,6 @@
 import math, re
 
+from .base import BaseParser
 from hamplify.config import *
 from hamplify.element import *
 from hamplify.parsers.block import BlockParser
@@ -10,13 +11,15 @@ from hamplify.parsers.tags import TagParser
 # Supports CRLF and LF newlines
 regex_newline = re.compile(r"\r?\n")
 
-class Parser:
-  tag_parser = TagParser()
-  block_parser = BlockParser()
-  doctype_parser = DoctypeParser()
-  comment_parser = CommentParser()
+class Parser(BaseParser):
+  def __init__(self, options=None):
+    super(Parser, self).__init__(options)
 
-  def __init__(self):
+    self.tag_parser = TagParser(options)
+    self.block_parser = BlockParser(options)
+    self.doctype_parser = DoctypeParser(options)
+    self.comment_parser = CommentParser(options)
+
     self._reset()
 
   def _reset(self):
@@ -27,10 +30,13 @@ class Parser:
     self.cursor = self.root
     self.stack = [self.root]
 
+    self.options = {}
+
   def parse(self, text):
     """ Parses a block of HAML and returns an element tree
     """
 
+    self._reset()
     text = regex_newline.split(text)
 
     for line in text:
@@ -76,7 +82,7 @@ class Parser:
       if line.startswith(t):
         return self.tag_parser.parse(line)
 
-    if line.startswith(TOKEN_BLOCK):
+    if self.options.get("blocks") and line.startswith(TOKEN_BLOCK):
       return self.block_parser.parse(line)
 
     if line.startswith(TOKEN_DOCTYPE):

@@ -1,8 +1,9 @@
 from collections import OrderedDict
 
+from .base import BaseParser
 from hamplify.config import *
 
-class AttributeParser:
+class AttributeParser(BaseParser):
   """ State-based parser for extracting attributes from a tag.
   """
 
@@ -12,6 +13,11 @@ class AttributeParser:
   STATE_POST_NAME_WS = 3
   STATE_PRE_VALUE_WS = 4
   STATE_VALUE = 5
+
+  def __init__(self, options=None):
+    super(AttributeParser, self).__init__(options)
+
+    self._reset()
 
   def _reset(self):
     self.attrs = OrderedDict()

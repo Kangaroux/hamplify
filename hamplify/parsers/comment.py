@@ -1,14 +1,18 @@
 import re
 
+from .base import BaseParser
 from hamplify.config import *
 from hamplify.element import *
 
-class CommentParser:
+class CommentParser(BaseParser):
   """ Parses out HTML and HAML comments:
 
   -# HTML comment (rendered)
   / HAML comment (not rendered)
   """
+
+  def __init__(self, options=None):
+    super(CommentParser, self).__init__(options)
 
   def parse(self, text):
     if text.startswith(TOKEN_HTML_COMMENT):
