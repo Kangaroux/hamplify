@@ -3,7 +3,7 @@ import argparse, os, time
 from hamplify.parsers.parser import Parser
 
 arg_parser = argparse.ArgumentParser(description="Convert HAML files to HTML.")
-arg_parser.add_argument("src", metavar="source", help="A path to a file_name or dir containing .haml files")
+arg_parser.add_argument("src", metavar="source", help="A path to a single file or dir containing .haml files")
 arg_parser.add_argument("dst", metavar="dest", nargs="?", help="A path to where the "
   "converted file(s) should go (defaults to src directory)")
 arg_parser.add_argument("-e", "--ext", metavar="extension", default=["haml"], nargs="+", 
@@ -17,7 +17,10 @@ parser = Parser()
 
 # Output dir defaults to the source
 if not args.dst:
-  args.dst = args.src
+  if os.path.isfile(args.src):
+    args.dst = os.path.dirname(args.src)
+  else:
+    args.dst = args.src
 
 # Make sure all extensions start with a period
 for i in range(len(args.ext)):
@@ -41,8 +44,14 @@ def main():
 
   print("Working...")
   earlier = time.time()
-  count = convert()
-  print("Finished converting %d files in %dms." % (count, (time.time() - earlier) * 1000))
+
+  # Converting just a single file
+  if os.path.isfile(args.src):
+    convert_file()
+    print("Finished converting in %dms." % ((time.time() - earlier) * 1000))
+  else:
+    count = convert_dir()
+    print("Finished converting %d files in %dms." % (count, (time.time() - earlier) * 1000))
 
 def create_out_dir(path):
   try:
@@ -50,7 +59,7 @@ def create_out_dir(path):
   except OSError:
     pass
 
-def convert():
+def convert_dir():
   """ Recursively walks a path, converting every haml file it finds, then returns how
   many files were converted
   """
@@ -73,18 +82,26 @@ def convert():
       for ext in args.ext:
         if f.endswith(ext):
           # Remove the extension so we can replace it with the output extension
-          convert_file(os.path.join(path, f), os.path.join(out_path, f[:-len(ext)]))
+          write_file(os.path.join(path, f), os.path.join(out_path, f[:-len(ext)]) + args.out)
           converted += 1
           break
 
   return converted
 
-def convert_file(in_file, out_file):
+def convert_file():
+  """ Converts a single file
+  """
+
+  create_out_dir(os.path.dirname(args.dst))
+  file_name = os.path.basename(args.src).split(".")[0] + args.out
+  write_file(args.src, os.path.join(args.dst, file_name))
+
+def write_file(in_file, out_file):
   """ Converts a file and saves it to the destination folder
   """
 
   with open(in_file, "r") as fin:
-    with open(out_file + args.out, "w") as fout:
+    with open(out_file, "w") as fout:
       buffer = fin.read()
       parser._reset()
       fout.write(parser.parse(buffer).render())
