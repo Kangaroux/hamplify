@@ -129,7 +129,7 @@ class Parser:
           else:
             return 0
         else:
-          indent = i / self.ws_per_indent
+          indent = float(i) / self.ws_per_indent
           floored = math.floor(indent)
 
           # Indentation must be an even multiple of previous indentation

@@ -12,5 +12,5 @@ pip install -r reqs/test.txt
 
 Run the tests 
 ```
-py.test
+py.test --cov=hamplify
 ```

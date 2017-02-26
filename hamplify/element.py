@@ -2,7 +2,7 @@ from collections import OrderedDict
 
 from hamplify.parsers.config import ParseError
 
-class Element:
+class Element(object):
   """ Base element
   """
 
@@ -95,7 +95,7 @@ class Comment(Node):
   """
 
   def __init__(self, render=True):
-    super().__init__()
+    super(Comment, self).__init__()
 
     # Whether this comment should be rendered or not. Comments that are rendered
     # appear as an html comment <!-- --> 
@@ -143,7 +143,7 @@ class Tag(Node):
   """
 
   def __init__(self, tag="div", classes=None, dom_id=None, attrs=None):
-    super().__init__()
+    super(Tag, self).__init__()
 
     self.attrs = attrs or OrderedDict()
     self.classes = classes or []
