@@ -29,6 +29,9 @@ class TestTagParser(unittest.TestCase):
     assert e.id == None
     assert e.children == []
 
+    e = self.tp.parse("%h1")
+    assert e.tag == "h1"
+
   def test_class(self):
     e = self.tp.parse("%input.my_Class")
     assert e.classes == ["my_Class"]

@@ -4,7 +4,7 @@ from .attributes import AttributeParser
 from .config import *
 from hamplify.element import Tag, Text
 
-regex_letters = re.compile(r'([a-zA-Z]+)')
+regex_tag_name = re.compile(r'([a-zA-Z][a-zA-Z0-9]*)')
 regex_class_id = re.compile(r'(?:\.|#)([a-zA-Z0-9_-]*)')
 
 class TagParser:
@@ -63,7 +63,7 @@ class TagParser:
     if not self.text:
       raise ParseError("Encountered a blank tag, expected a name")
 
-    tag_name = regex_letters.match(self.text)
+    tag_name = regex_tag_name.match(self.text)
 
     if not tag_name:
       raise ParseError("Expected a name for the tag, but instead found '%s'" % self.text[0])
