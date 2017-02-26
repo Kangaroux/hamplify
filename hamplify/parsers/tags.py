@@ -32,7 +32,7 @@ class TagParser:
         return self._parse(False)
 
     # Plaintext or blank line
-    return Text(self.text or "")
+    return Text(self.text)
 
   def _parse(self, parse_name=True):
     """ Parses a tag and any immediate text contents.

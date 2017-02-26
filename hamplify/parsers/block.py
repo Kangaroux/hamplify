@@ -11,12 +11,6 @@ class BlockParser:
   """
 
   def parse(self, text):
-    # Handle comment blocks
-    if text.startswith(TOKEN_HTML_COMMENT):
-      return Comment().add_child(Text(text[len(TOKEN_HTML_COMMENT):]))
-    elif text.startswith(TOKEN_COMMENT):
-      return Comment(render=False).add_child(Text(text[len(TOKEN_COMMENT):]))
-
     match = regex_block.match(text)
 
     if not match:

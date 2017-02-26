@@ -3,6 +3,7 @@ import math, re
 from .config import *
 from hamplify.element import *
 from hamplify.parsers.block import BlockParser
+from hamplify.parsers.comment import CommentParser
 from hamplify.parsers.doctype import DoctypeParser
 from hamplify.parsers.tags import TagParser
 
@@ -13,6 +14,7 @@ class Parser:
   tag_parser = TagParser()
   block_parser = BlockParser()
   doctype_parser = DoctypeParser()
+  comment_parser = CommentParser()
 
   def _reset(self):
     self.ws_per_indent = None
@@ -56,13 +58,16 @@ class Parser:
     or block, and parses it if it does. Otherwise returns a text object
     """
 
+    for t in COMMENT_TOKENS:
+      if line.startswith(t):
+        return self.comment_parser.parse(line)
+
     for t in TAG_TOKENS:
       if line.startswith(t):
         return self.tag_parser.parse(line)
 
-    for b in BLOCK_TOKENS:
-      if line.startswith(b):
-        return self.block_parser.parse(line)
+    if line.startswith(TOKEN_BLOCK):
+      return self.block_parser.parse(line)
 
     if line.startswith(TOKEN_DOCTYPE):
       return self.doctype_parser.parse(line)
