@@ -10,6 +10,8 @@ arg_parser.add_argument("-e", "--ext", metavar="extension", default=["haml"], na
   help="The extensions of the haml files to look for (defaults to 'haml')")
 arg_parser.add_argument("-o", "--out", metavar="extension", default="html", nargs="?", 
   help="The extension to save the converted files as (defaults to 'html')")
+arg_parser.add_argument("-v", "--verbose", action="store_true", 
+  help="Verbose mode. Prints out file paths as files are being converted")
 
 args = arg_parser.parse_args()
 dir_stack = []
@@ -48,10 +50,18 @@ def main():
   # Converting just a single file
   if os.path.isfile(args.src):
     convert_file()
-    print("Finished converting in %dms." % ((time.time() - earlier) * 1000))
+
+    if args.verbose:
+      print()
+
+    print("Finished converting in %d ms." % ((time.time() - earlier) * 1000))
   else:
     count = convert_dir()
-    print("Finished converting %d files in %dms." % (count, (time.time() - earlier) * 1000))
+
+    if args.verbose and count > 0:
+      print()
+
+    print("Finished converting %d files in %d ms." % (count, (time.time() - earlier) * 1000))
 
 def create_out_dir(path):
   try:
@@ -100,8 +110,16 @@ def write_file(in_file, out_file):
   """ Converts a file and saves it to the destination folder
   """
 
+  earlier = time.time()
+
   with open(in_file, "r") as fin:
     with open(out_file, "w") as fout:
       buffer = fin.read()
       parser._reset()
       fout.write(parser.parse(buffer).render())
+
+  if args.verbose:
+    print()
+    print("Input file:   %s" % os.path.relpath(in_file))
+    print("Output file:  %s" % os.path.relpath(out_file))
+    print("Conversion took %.3f ms" % ((time.time() - earlier) * 1000))
