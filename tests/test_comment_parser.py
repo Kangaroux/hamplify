@@ -10,9 +10,9 @@ class TestCommentParser(unittest.TestCase):
   def test_html_comment(self):
     self.assertIsInstance(self.cp.parse("-#"), Comment)
 
-    e = self.cp.parse("-# A comment")
-    assert " A comment" == e.children[0].text
-    assert "<!-- A comment -->" == e.render()
+    e = self.cp.parse("-# A comment  ")
+    assert " A comment  " == e.children[0].text
+    assert "<!-- A comment   -->" == e.render()
 
   def test_comment(self):
     self.assertIsInstance(self.cp.parse("/"), Comment)

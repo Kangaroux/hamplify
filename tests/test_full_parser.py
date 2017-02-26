@@ -30,7 +30,7 @@ class TestFullParser(unittest.TestCase):
 
   def test_indentation(self):
     self.p._reset()
-    assert 0 == self.p._get_indentation("some text")
+    assert 0 == self.p._get_indentation("some text  ")
     assert 1 == self.p._get_indentation("  Indented")
     assert 2 == self.p._get_indentation("    Some more")
     assert None == self.p._get_indentation("        ")

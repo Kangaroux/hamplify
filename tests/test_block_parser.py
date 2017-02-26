@@ -15,6 +15,6 @@ class TestBlockParser(unittest.TestCase):
     assert block.name == "include"
     assert block.args == ""
 
-    block = self.bp.parse("- for x in list")
+    block = self.bp.parse("- for x in list   ")
     assert block.name == "for"
     assert block.args == "x in list"

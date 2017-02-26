@@ -71,6 +71,9 @@ class TestTagParser(unittest.TestCase):
     assert len(e.children) == 1
     assert e.children[0].text == "some text"
 
+    e = self.tp.parse("%input   whitespace   ")
+    assert e.children[0].text == "  whitespace   "
+
   def test_no_tag_name(self):
     e = self.tp.parse(".class#id some text")
     assert e.classes == ["class"]

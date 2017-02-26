@@ -22,7 +22,7 @@ class TagParser:
     """
 
     self._reset()
-    self.text = text.rstrip()
+    self.text = text
 
     if text:
       if text.startswith(TOKEN_TAG):
@@ -124,6 +124,6 @@ class TagParser:
       if text:
         self.tag.add_child(Text(text))
     elif self.text[0] == " ":
-      self.tag.add_child(Text(self.text.lstrip()))
+      self.tag.add_child(Text(self.text[1:]))
     else:
       raise ParseError("Expected a '%s' or whitespace" % TOKEN_ATTR_WRAPPER[0])
