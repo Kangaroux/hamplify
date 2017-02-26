@@ -2,7 +2,7 @@ import re
 
 from .attributes import AttributeParser
 from hamplify.config import *
-from hamplify.element import Tag, Text
+from hamplify.element import SelfClosingTag, Tag, Text
 
 regex_tag_name = re.compile(r'([a-zA-Z][a-zA-Z0-9]*)')
 regex_class_id = re.compile(r'(?:\.|#)([a-zA-Z0-9_-]*)')
@@ -14,7 +14,7 @@ class TagParser:
   ap = AttributeParser()
 
   def _reset(self):
-    self.tag = Tag()
+    self.tag = None
     self.text = None
 
   def parse(self, text):
@@ -28,6 +28,7 @@ class TagParser:
       if text.startswith(TOKEN_TAG):
         return self._parse()
       elif text.startswith(TOKEN_CLASS) or text.startswith(TOKEN_ID):
+        self.tag = Tag()
         self.tag.tag = "div"
         return self._parse(False)
 
@@ -69,6 +70,11 @@ class TagParser:
       raise ParseError("Expected a name for the tag, but instead found '%s'" % self.text[0])
 
     tag_name = tag_name.group(1)
+
+    if tag_name.lower() in SELF_CLOSING_TAGS:
+      self.tag = SelfClosingTag()
+    else:
+      self.tag = Tag()
 
     self.tag.tag = tag_name
     self.text = self.text[len(tag_name):]

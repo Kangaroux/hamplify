@@ -70,11 +70,11 @@ class TestTagParser(unittest.TestCase):
       self.tp.parse("%button#id/")
 
   def test_remainder(self):
-    e = self.tp.parse("%input some text")
+    e = self.tp.parse("%p some text")
     assert len(e.children) == 1
     assert e.children[0].text == "some text"
 
-    e = self.tp.parse("%input   whitespace   ")
+    e = self.tp.parse("%textarea   whitespace   ")
     assert e.children[0].text == "  whitespace   "
 
   def test_no_tag_name(self):
@@ -102,3 +102,8 @@ class TestTagParser(unittest.TestCase):
   def test_render(self):
     assert (self.tp.parse("%a.class#id(href='#'  data-blah=1234 required )").render()
       == '<a id="id" class="class" href="#" data-blah=1234 required></a>')
+
+  def test_self_closing_tag(self):
+    e = self.tp.parse("%br")
+    assert type(e) is SelfClosingTag
+    assert e.render() == "<br />"
