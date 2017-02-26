@@ -1,6 +1,6 @@
 import math, re
 
-from .config import *
+from hamplify.config import *
 from hamplify.element import *
 from hamplify.parsers.block import BlockParser
 from hamplify.parsers.comment import CommentParser

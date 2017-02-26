@@ -1,7 +1,7 @@
 import unittest
 
 from hamplify.element import *
-from hamplify.parsers.config import ParseError
+from hamplify.config import ParseError
 from hamplify.parsers.parser import Parser
 
 class TestFullParser(unittest.TestCase):

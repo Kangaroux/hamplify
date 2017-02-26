@@ -1,6 +1,6 @@
 from collections import OrderedDict
 
-from hamplify.parsers.config import ParseError
+from hamplify.config import ParseError
 
 class Element(object):
   """ Base element
@@ -138,13 +138,14 @@ class InlineBlock(BaseBlock, Element):
 
   pass
 
-class Tag(Node):
+class BaseTag:
   """ An html tag with an id, classes, and attributes
   """
 
-  def __init__(self, tag="div", classes=None, dom_id=None, attrs=None):
-    super(Tag, self).__init__()
+  # What to use for the end of the tag (not to be confused with the closing tag, </tag>)
+  END_OF_TAG = ">"
 
+  def __init__(self, tag="div", classes=None, dom_id=None, attrs=None):
     self.attrs = attrs or OrderedDict()
     self.classes = classes or []
     self.id = dom_id
@@ -156,7 +157,7 @@ class Tag(Node):
     if self.id:
       text += " id=\"%s\"" % self.id
 
-    classes = self.get_class_string()
+    classes = self._get_class_string()
 
     if classes:
       text += " class=\"%s\"" % classes
@@ -177,14 +178,11 @@ class Tag(Node):
       else:
         text += " %s=\"%s\"" % (k, v)
 
-    text += ">"
+    text += self.END_OF_TAG
 
     return text
 
-  def _post_render(self):
-    return "</%s>" % self.tag
-
-  def get_class_string(self):
+  def _get_class_string(self):
     """ Combines classes with the .class notation with the classes in the attribute
     dictionary, and returns it as a string
     """
@@ -197,3 +195,28 @@ class Tag(Node):
     classes += " ".join(self.classes)
 
     return classes
+
+class Tag(BaseTag, Node):
+  """ A tag that can have children.
+
+  <tag>...</tag>
+  """
+
+  def __init__(self, tag="div", classes=None, dom_id=None, attrs=None):
+    super(Tag, self).__init__(tag, classes, dom_id, attrs)
+
+    # Due to some hilarious issues with super() and multiple inheritance, we unfortunately
+    # have to define these by hand instead of using Node's constructor
+    self.children = []
+    self.render_children = True
+
+  def _post_render(self):
+    return "</%s>" % self.tag
+
+class SelfClosingTag(BaseTag, Element):
+  """ A self closing tag that has no children
+
+  <tag />
+  """
+
+  END_OF_TAG = " />"

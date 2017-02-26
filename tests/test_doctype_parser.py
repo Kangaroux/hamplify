@@ -1,7 +1,7 @@
 import unittest
 
 from hamplify.element import *
-from hamplify.parsers.config import ParseError
+from hamplify.config import ParseError
 from hamplify.parsers.doctype import DoctypeParser
 
 class TestDoctypeParser(unittest.TestCase):

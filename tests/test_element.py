@@ -1,7 +1,7 @@
 import unittest
 
 from hamplify.element import *
-from hamplify.parsers.config import ParseError
+from hamplify.config import ParseError
 
 class TestElements(unittest.TestCase):
   """ None of these tests actually have any application, but it

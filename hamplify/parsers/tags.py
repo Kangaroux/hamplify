@@ -1,7 +1,7 @@
 import re
 
 from .attributes import AttributeParser
-from .config import *
+from hamplify.config import *
 from hamplify.element import Tag, Text
 
 regex_tag_name = re.compile(r'([a-zA-Z][a-zA-Z0-9]*)')

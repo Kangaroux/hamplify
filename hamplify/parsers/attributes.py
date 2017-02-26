@@ -1,6 +1,6 @@
 from collections import OrderedDict
 
-from .config import *
+from hamplify.config import *
 
 class AttributeParser:
   """ State-based parser for extracting attributes from a tag.

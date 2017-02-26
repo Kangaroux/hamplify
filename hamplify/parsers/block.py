@@ -1,6 +1,6 @@
 import re
 
-from .config import *
+from hamplify.config import *
 from hamplify.element import *
 
 regex_block = re.compile(r'- *(\w+)(.*)')
