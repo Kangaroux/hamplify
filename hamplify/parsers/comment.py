@@ -16,4 +16,4 @@ class CommentParser:
     elif text.startswith(TOKEN_COMMENT):
       return Comment(render=False).add_child(Text(text[len(TOKEN_COMMENT):]))
 
-    return Text(self.text)
+    return Text(text)

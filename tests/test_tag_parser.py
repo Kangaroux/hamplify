@@ -107,3 +107,6 @@ class TestTagParser(unittest.TestCase):
     e = self.tp.parse("%br")
     assert type(e) is SelfClosingTag
     assert e.render() == "<br />"
+
+    e = self.tp.parse("%link(rel='stylesheet' href='blah.css')")
+    assert e.render() == '<link rel="stylesheet" href="blah.css" />'

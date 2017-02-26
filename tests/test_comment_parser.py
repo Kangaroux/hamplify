@@ -7,6 +7,10 @@ from hamplify.parsers.comment import CommentParser
 class TestCommentParser(unittest.TestCase):
   cp = CommentParser()
 
+  def test_plaintext(self):
+    e = self.cp.parse("some plaintext")
+    assert type(e) is Text
+
   def test_html_comment(self):
     self.assertIsInstance(self.cp.parse("-#"), Comment)
 
