@@ -25,6 +25,9 @@ class Parser:
     self.stack = [self.root]
 
   def parse(self, text):
+    """ Parses a block of HAML and returns an element tree
+    """
+
     text = regex_newline.split(text)
 
     for line in text:
@@ -34,21 +37,25 @@ class Parser:
       if indentation is not None:
         level = self._indent_level()
 
-        # Indentation can only increase at a rate of once per line
-        if indentation > (level + 1):
-          raise ParseError("Indentation jumped too much (previous level was %d,"
-            " now at %d)" % (level, indentation))
-        elif indentation <= level:
-          # If the indentation didn't increase, then some elements 
-          # from the stack need to be popped
+        # Comments can span multiple lines, so make sure we don't parse them
+        if self._in_comment(indentation):
+          self._push(Text(line))
+          continue
+
+        # If the indentation didn't increase, then some elements 
+        # from the stack need to be popped
+        if indentation <= level:
           while indentation <= level and level > 0:
             self._pop()
             level -= 1
+        elif indentation > (level + 1):
+          raise ParseError("Indentation jumped too much (previous level was %d,"
+            " now at %d)" % (level, indentation))
 
       element = self._parse_line(line)
 
       # Skip blank lines
-      if not (type(element) is Text and element.text == ""):
+      if not (type(element) is Text and element.text.strip() == ""):
         self._push(element)
 
     return self.root
@@ -137,8 +144,9 @@ class Parser:
           indent = float(i) / self.ws_per_indent
           floored = math.floor(indent)
 
-          # Indentation must be an even multiple of previous indentation
-          if floored < indent:
+          # Indentation must be an even multiple of previous indentation, unless we're
+          # inside a comment
+          if floored < indent and not self._in_comment(floored):
             raise ParseError("Uneven indentation level (expected multiple of %d)" % self.ws_per_indent)
 
           return floored
@@ -152,3 +160,10 @@ class Parser:
 
     # This is a blank line (don't count indentation)
     return None
+
+  def _in_comment(self, indentation=None):
+    """ Returns true if the text at a given indentation would be captured
+    as a comment
+    """
+
+    return indentation > self._indent_level() and type(self.cursor) is Comment

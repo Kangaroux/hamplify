@@ -78,6 +78,7 @@ class TestFullParser(unittest.TestCase):
       %p some text
       / comment you can't see %tag.blah
         still a comment
+         %  bad tag
 
       -# HTML comment
       """)

@@ -66,7 +66,7 @@ class TagParser:
     tag_name = regex_letters.match(self.text)
 
     if not tag_name:
-      raise ParseError("Expected a name for the tag, but instead found %s" % self.text[0])
+      raise ParseError("Expected a name for the tag, but instead found '%s'" % self.text[0])
 
     tag_name = tag_name.group(1)
 
