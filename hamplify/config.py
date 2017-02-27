@@ -12,6 +12,10 @@ TAG_TOKENS = (TOKEN_TAG, TOKEN_CLASS, TOKEN_ID)
 COMMENT_TOKENS = (TOKEN_HTML_COMMENT, TOKEN_COMMENT)
 INDENTATION = (" ", "\t")
 
+ENGINE_DJANGO = "django"
+ENGINE_JINJA = "jinja"
+ENGINES = ("django", "jinja")
+
 # List of tags which are considered self closing
 SELF_CLOSING_TAGS = (
   "area",
@@ -57,15 +61,6 @@ right order, that's the template engine's job.
   ...
 {% endif %}
 """
-JINJA_BLOCKS = (
-  ("block", "endblock"),
-  ("call", "endcall"),
-  ("for", "endfor", "else"),
-  ("filter", "endfilter"),
-  ("if", "endif", "elif", "else"),
-  ("macro", "endmacro"),
-  ("set", "endset"),
-)
 
 DJANGO_BLOCKS = (
   ("autoescape", "endautoescape"),
@@ -79,6 +74,16 @@ DJANGO_BLOCKS = (
   ("spaceless", "endspaceless"),
   ("verbatim", "endverbatim"),
   ("with", "endwith"),
+)
+
+JINJA_BLOCKS = (
+  ("block", "endblock"),
+  ("call", "endcall"),
+  ("for", "endfor", "else"),
+  ("filter", "endfilter"),
+  ("if", "endif", "elif", "else"),
+  ("macro", "endmacro"),
+  ("set", "endset"),
 )
 
 class ParseError(Exception):

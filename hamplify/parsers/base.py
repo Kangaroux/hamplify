@@ -1,5 +1,7 @@
 class BaseParser(object):
   def __init__(self, options=None):
+    super(BaseParser, self).__init__()
+
     if options is None:
       options = {}
 

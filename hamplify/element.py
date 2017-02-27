@@ -82,6 +82,9 @@ class Node(Element):
     return text
 
 class RootNode(Node):
+  def __init__(self):
+    super(RootNode, self).__init__()
+
   def set_parent(self, parent):
     raise Exception("Called set_parent on root node")
 
@@ -90,6 +93,8 @@ class Text(Element):
   """
 
   def __init__(self, text=""):
+    super(Text, self).__init__()
+
     self.text = text
 
   def render(self):
@@ -119,9 +124,11 @@ class Comment(Node):
       return ""
 
 class BaseBlock(object):
-  def __init__(self, name=None, args=None):
-    self.name = name
-    self.args = args
+  def __init__(self):
+    super(BaseBlock, self).__init__()
+
+    self.name = None
+    self.args = None
 
 class Block(BaseBlock, Node):
   """ A block that can span multiple lines.
@@ -131,7 +138,31 @@ class Block(BaseBlock, Node):
   {% endfor %}
   """
 
-  pass
+  def __init__(self):
+    super(Block, self).__init__()
+
+    # Some blocks (like if's) can have elifs and elses before 
+    # the block is completely closed.
+    self.linked_to = None
+    self.render_end_tag = True
+
+    # The tuple containing the tags this block uses
+    # e.g. ("block", "endblock")
+    self.tags = None
+
+  def _pre_render(self):
+    text = "{%% %s" % self.name
+
+    if self.args:
+      text += " %s" % self.args
+
+    return text + " %}"
+
+  def _post_render(self):
+    if self.render_end_tag:
+      return "{%% %s %%}" % self.tags[1]
+    else:
+      return ""
 
 class InlineBlock(BaseBlock, Element):
   """ A block that doesn't contain anything and only exists on a single line
@@ -141,7 +172,16 @@ class InlineBlock(BaseBlock, Element):
   ...
   """
 
-  pass
+  def __init__(self):
+    super(InlineBlock, self).__init__()
+
+  def render(self):
+    text = "{%% %s" % self.name
+
+    if self.args:
+      text += " %s" % self.args
+
+    return text + " %}"
 
 class BaseTag(object):
   """ An html tag with an id, classes, and attributes
