@@ -1,5 +1,6 @@
 import argparse, os, time
 
+from hamplify.config import *
 from hamplify.parsers.parser import Parser
 
 arg_parser = argparse.ArgumentParser(description="Convert HAML files to HTML.")
@@ -12,6 +13,10 @@ arg_parser.add_argument("-o", "--out", metavar="extension", default="html", narg
   help="The extension to save the converted files as (defaults to 'html')")
 arg_parser.add_argument("-v", "--verbose", action="store_true", 
   help="Verbose mode. Prints out file paths as files are being converted")
+arg_parser.add_argument("--django", action="store_true", 
+  help="Parses the file(s) with Django syntax and tag names")
+arg_parser.add_argument("--jinja", action="store_true", 
+  help="Parses the file(s) with Jinja syntax and tag names")
 
 args = arg_parser.parse_args()
 dir_stack = []
@@ -32,7 +37,7 @@ for i in range(len(args.ext)):
 if not args.out.startswith("."):
   args.out = "." + args.out
 
-#
+# Normalize paths to be the full path
 args.src = os.path.realpath(args.src)
 args.dst = os.path.realpath(args.dst)
 
@@ -43,6 +48,11 @@ def main():
   if not os.path.exists(args.src):
     print("Source path or file does not exist: %s" % args.src)
     exit(1)
+
+  if args.django:
+    parser = Parser({"engine": ENGINE_DJANGO})
+  elif args.jinja:
+    parser = Parser({"engine": ENGINE_JINJA})
 
   print("Working...")
   earlier = time.time()
@@ -115,7 +125,6 @@ def write_file(in_file, out_file):
   with open(in_file, "r") as fin:
     with open(out_file, "w") as fout:
       buffer = fin.read()
-      parser._reset()
       fout.write(parser.parse(buffer).render())
 
   if args.verbose:
