@@ -106,6 +106,8 @@ class ParseError(Exception):
     if self.file_path:
       text += "in file %s" % self.file_path
 
+    text = text.strip()
+
     text += "\n\n%s" % self.line
     text += "\n\nReason: %s" % self.message
 

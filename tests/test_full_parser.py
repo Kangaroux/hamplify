@@ -114,3 +114,16 @@ some text
     assert (html.render() == '{% for x in list %}{{x}}{% endfor %}{% if condition %}'
       '{% if another condition %}something{% custom_tag %}{% endif %}'
       '<a href="#">link</a>{% else %}{{stuff}}{% endif %}some text<p>blah</p>')
+
+  # Verifies that the parse error is generating the correct response
+  def test_parse_error(self):
+    try:
+      self.p.parse("""
+    %tag
+        too much indentation
+        """)
+    except ParseError as pe:
+      s = str(pe)
+      assert "line 2" in s
+      assert "indentation" in s
+      assert "%tag" in s
