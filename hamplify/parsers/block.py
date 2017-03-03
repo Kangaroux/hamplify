@@ -40,7 +40,6 @@ class BlockParser(BaseParser):
 
     # Two blocks next to each other need to be linked
     if sibling and type(sibling) is Block and len(sibling.tags) > 2:
-      print(sibling.name, name)
       for k in block_list:
         if name in sibling.tags[2:]:
           block = Block()
@@ -51,8 +50,6 @@ class BlockParser(BaseParser):
           block.linked_to = sibling
 
           sibling.render_end_tag = False
-
-          print("linked blocks")
 
           return block
 
