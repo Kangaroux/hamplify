@@ -20,7 +20,14 @@ arg_parser.add_argument("--jinja", action="store_true",
 
 args = arg_parser.parse_args()
 dir_stack = []
-parser = Parser()
+parser = None
+
+if args.django:
+    parser = Parser({"engine": ENGINE_DJANGO})
+elif args.jinja:
+  parser = Parser({"engine": ENGINE_JINJA})
+else:
+  parser = Parser()
 
 # Output dir defaults to the source
 if not args.dst:
@@ -48,11 +55,6 @@ def main():
   if not os.path.exists(args.src):
     print("Source path or file does not exist: %s" % args.src)
     exit(1)
-
-  if args.django:
-    parser = Parser({"engine": ENGINE_DJANGO})
-  elif args.jinja:
-    parser = Parser({"engine": ENGINE_JINJA})
 
   print("Working...")
   earlier = time.time()
