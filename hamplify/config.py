@@ -87,4 +87,26 @@ JINJA_BLOCKS = (
 )
 
 class ParseError(Exception):
-  pass
+  def __init__(self, message, line_number=None, col=None, line=None, file_path=None):
+    self.col = col
+    self.line = line
+    self.line_number = line_number
+    self.message = message
+    self.file_path = file_path
+
+  def __str__(self):
+    text = "Syntax error "
+
+    if self.line_number:
+      text += "on line %d " % self.line_number
+
+    if self.col:
+      text += "at col %d " % self.col
+
+    if self.file_path:
+      text += "in file %s" % self.file_path
+
+    text += "\n\n%s" % self.line
+    text += "\n\nReason: %s" % self.message
+
+    return text

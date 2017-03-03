@@ -1,4 +1,4 @@
-import argparse, os, time
+import argparse, os, termcolor, time
 
 from hamplify.config import *
 from hamplify.parsers.parser import Parser
@@ -23,7 +23,7 @@ dir_stack = []
 parser = None
 
 if args.django:
-    parser = Parser({"engine": ENGINE_DJANGO})
+  parser = Parser({"engine": ENGINE_DJANGO})
 elif args.jinja:
   parser = Parser({"engine": ENGINE_JINJA})
 else:
@@ -68,12 +68,16 @@ def main():
 
     print("Finished converting in %d ms." % ((time.time() - earlier) * 1000))
   else:
-    count = convert_dir()
+    count, converted = convert_dir()
 
     if args.verbose and count > 0:
       print()
 
-    print("Finished converting %d files in %d ms." % (count, (time.time() - earlier) * 1000))
+    print(termcolor.colored("Finished converting %d file(s) in %d ms." 
+      % (converted, (time.time() - earlier) * 1000), "green"))
+
+    if count != converted:
+      print(termcolor.colored("FAILED: %d file(s) failed to compile." % (count - converted), "red"))
 
 def create_out_dir(path):
   try:
@@ -86,6 +90,7 @@ def convert_dir():
   many files were converted
   """
 
+  file_count = 0
   converted = 0
   
   for path, dirs, files in os.walk(args.src):
@@ -103,12 +108,14 @@ def convert_dir():
       # Check if the file extension matches
       for ext in args.ext:
         if f.endswith(ext):
-          # Remove the extension so we can replace it with the output extension
-          write_file(os.path.join(path, f), os.path.join(out_path, f[:-len(ext)]) + args.out)
-          converted += 1
-          break
+          file_count += 1
 
-  return converted
+          # Remove the extension so we can replace it with the output extension
+          if write_file(os.path.join(path, f), os.path.join(out_path, f[:-len(ext)]) + args.out):
+            converted += 1
+            break
+
+  return file_count, converted
 
 def convert_file():
   """ Converts a single file
@@ -122,15 +129,29 @@ def write_file(in_file, out_file):
   """ Converts a file and saves it to the destination folder
   """
 
-  earlier = time.time()
-
-  with open(in_file, "r") as fin:
-    with open(out_file, "w") as fout:
-      buffer = fin.read()
-      fout.write(parser.parse(buffer).render())
-
   if args.verbose:
     print()
     print("Input file:   %s" % os.path.relpath(in_file))
     print("Output file:  %s" % os.path.relpath(out_file))
-    print("Conversion took %.3f ms" % ((time.time() - earlier) * 1000))
+
+  earlier = time.time()
+  success = True
+
+  with open(in_file, "r") as fin:
+    with open(out_file, "w") as fout:
+      buffer = fin.read()
+
+      try:
+        fout.write(parser.parse(buffer).render())
+      except ParseError as pe:
+        pe.file_path = os.path.relpath(in_file)
+        print(termcolor.colored(pe, "red"))
+        success = False
+
+  if args.verbose:
+    if success:
+      print("Conversion took %.3f ms" % ((time.time() - earlier) * 1000))
+    else:
+      print("Conversion took %.3f ms %s" % ((time.time() - earlier) * 1000, termcolor.colored("(FAILED)", "red")))
+
+  return success

@@ -36,32 +36,40 @@ class Parser(BaseParser):
 
     self._reset()
     text = regex_newline.split(text)
+    line_number = 0
+    line = None
 
-    for line in text:
-      indentation = self._get_indentation(line)
-      line = line.lstrip()
+    try:
+      for line in text:
+        indentation = self._get_indentation(line)
+        line = line.lstrip()
+        line_number += 1
 
-      # If the line has indentation, then it cannot be blank/whitespace
-      if indentation is not None:
-        level = self._block_level()
+        # If the line has indentation, then it cannot be blank/whitespace
+        if indentation is not None:
+          level = self._block_level()
 
-        # Comments can span multiple lines, so make sure we don't parse them
-        if self._in_comment(indentation):
-          self._push(Text(line))
-          continue
+          # Comments can span multiple lines, so make sure we don't parse them
+          if self._in_comment(indentation):
+            self._push(Text(line))
+            continue
 
-        # Pop elements off the stack based on how the indentation changed
-        if indentation < level:
-          while indentation < level and level > 0:
-            self._pop()
-            level -= 1
-        elif indentation > level:
-          raise ParseError("Too much indentation (%d indents too many)" % (indentation - level))
+          # Pop elements off the stack based on how the indentation changed
+          if indentation < level:
+            while indentation < level and level > 0:
+              self._pop()
+              level -= 1
+          elif indentation > level:
+            raise ParseError("Too much indentation (%d indents too many)" % (indentation - level))
 
-        element = self._parse_line(line)
-        self._push(element)
-      else:
-        self._push(Text())
+          element = self._parse_line(line)
+          self._push(element)
+        else:
+          self._push(Text())
+    except ParseError as pe:
+      pe.line_number = line_number
+      pe.line = line
+      raise pe
 
     return self.root
 
