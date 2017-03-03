@@ -1,11 +1,14 @@
 import unittest
 
 from hamplify.element import *
-from hamplify.config import ParseError
+from hamplify.config import *
 from hamplify.parsers.parser import Parser
 
 class TestFullParser(unittest.TestCase):
-  p = Parser()
+  p = None
+
+  def setUp(self):
+    self.p = Parser()
 
   def test_cant_pop_empty_stack(self):
     self.p._reset()
@@ -35,6 +38,9 @@ class TestFullParser(unittest.TestCase):
     assert 2 == self.p._get_indentation("    Some more")
     assert None == self.p._get_indentation("        ")
     assert 1 == self.p._get_indentation("  Back down")
+
+    assert 0 == self.p._get_indentation("- for x in list")
+    assert 1 == self.p._get_indentation("  {{x}}")
 
   def test_mixed_indentation(self):
     self.p._reset()
@@ -85,3 +91,26 @@ class TestFullParser(unittest.TestCase):
 
     assert (html.render() == "<!DOCTYPE html><html><head><title>My cool title</title></head><body>"
       "<div class=\"container\"><p>some text</p><!-- HTML comment --></div></body></html>")
+
+  def test_blocks(self):
+    self.p = Parser({
+      "engine": ENGINE_DJANGO
+    })
+
+    html = self.p.parse("""
+- for x in list
+  {{x}}
+- if condition
+  - if another condition
+    something
+    - custom_tag
+  %a(href="#") link
+- else
+  {{stuff}}
+some text
+%p blah
+      """)
+
+    assert (html.render() == '{% for x in list %}{{x}}{% endfor %}{% if condition %}'
+      '{% if another condition %}something{% custom_tag %}{% endif %}'
+      '<a href="#">link</a>{% else %}{{stuff}}{% endif %}some text<p>blah</p>')

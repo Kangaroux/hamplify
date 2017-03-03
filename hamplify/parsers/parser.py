@@ -30,8 +30,6 @@ class Parser(BaseParser):
     self.cursor = self.root
     self.stack = [self.root]
 
-    self.options = {}
-
   def parse(self, text):
     """ Parses a block of HAML and returns an element tree
     """
@@ -43,29 +41,27 @@ class Parser(BaseParser):
       indentation = self._get_indentation(line)
       line = line.lstrip()
 
+      # If the line has indentation, then it cannot be blank/whitespace
       if indentation is not None:
-        level = self._indent_level()
+        level = self._block_level()
 
         # Comments can span multiple lines, so make sure we don't parse them
         if self._in_comment(indentation):
           self._push(Text(line))
           continue
 
-        # If the indentation didn't increase, then some elements 
-        # from the stack need to be popped
-        if indentation <= level:
-          while indentation <= level and level > 0:
+        # Pop elements off the stack based on how the indentation changed
+        if indentation < level:
+          while indentation < level and level > 0:
             self._pop()
             level -= 1
-        elif indentation > (level + 1):
-          raise ParseError("Indentation jumped too much (previous level was %d,"
-            " now at %d)" % (level, indentation))
+        elif indentation > level:
+          raise ParseError("Too much indentation (%d indents too many)" % (indentation - level))
 
-      element = self._parse_line(line)
-
-      # Skip blank lines
-      if not (type(element) is Text and element.text.strip() == ""):
+        element = self._parse_line(line)
         self._push(element)
+      else:
+        self._push(Text())
 
     return self.root
 
@@ -82,8 +78,9 @@ class Parser(BaseParser):
       if line.startswith(t):
         return self.tag_parser.parse(line)
 
-    if self.options.get("blocks") and line.startswith(TOKEN_BLOCK):
-      return self.block_parser.parse(line)
+    if self.options.get("engine") and line.startswith(TOKEN_BLOCK):
+      block = self.block_parser.parse(line, self._get_newest_child())
+      return block 
 
     if line.startswith(TOKEN_DOCTYPE):
       return self.doctype_parser.parse(line)
@@ -111,23 +108,15 @@ class Parser(BaseParser):
       raise Exception("Tried to pop stack while it was empty")
 
     e = self.stack.pop()
-    self.cursor = self._top()
+    self.cursor = self.stack[-1]
 
     return e
 
-  def _top(self):
-    """ Gets the top element on the stack
+  def _block_level(self):
+    """ Gets the current depth of the parser. 
     """
 
-    return self.stack[-1]
-
-  def _indent_level(self):
-    """ Gets the current indentation level.
-    """
-
-    # Subtract 2 from the stack to get the actual level. The parse tree root is always
-    # on the stack, and the root node(s) in the document cannot have any indentation
-    return max(len(self.stack) - 2, 0)
+    return len(self.stack) - 1
 
   def _get_indentation(self, line):
     """ Calculates the indentation level of the line
@@ -175,4 +164,17 @@ class Parser(BaseParser):
     as a comment
     """
 
-    return indentation > self._indent_level() and type(self.cursor) is Comment
+    return indentation >= self._block_level() and type(self.cursor) is Comment
+
+  def _get_newest_child(self):
+    """ Returns the most recently added in child from the cursor, that isn't
+    a blank text node. Returns None if no applicable node was found
+    """
+
+    for child in self.cursor.children[::-1]:
+      if type(child) is Text and child.is_empty():
+        continue
+      else:
+        return child
+
+    return None

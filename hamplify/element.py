@@ -100,6 +100,9 @@ class Text(Element):
   def render(self):
     return self.text
 
+  def is_empty(self):
+    return len(self.text.strip()) == 0
+
 class Comment(Node):
   """ Comment block
   """
