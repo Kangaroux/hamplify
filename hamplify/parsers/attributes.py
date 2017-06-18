@@ -3,6 +3,31 @@ from collections import OrderedDict
 from .base import BaseParser
 from hamplify.config import *
 
+class Attribute():
+  name = None
+  value = None
+
+  # The quote character that wraps the attributes (single/double)
+  quote_char = ""
+
+  def __eq__(self, other):
+    """ Required for unit tests to be able to compare this to a regular dict
+    with regular types for values
+    """
+
+    if type(other) is Attribute:
+      return other == self
+    else:
+      return other == self.value
+
+  def render(self):
+    if self.value is None:
+      return self.name
+    elif type(self.value) is int:
+      return "%s=%d" % (self.name, self.value)
+    else:
+      return "%s=%s%s%s" % (self.name, self.quote_char, self.value, self.quote_char)
+
 class AttributeParser(BaseParser):
   """ State-based parser for extracting attributes from a tag.
   """
@@ -21,8 +46,7 @@ class AttributeParser(BaseParser):
 
   def _reset(self):
     self.attrs = OrderedDict()
-    self.attr_name = None
-    self.attr_value = None
+    self.cur_attr = Attribute()
     self.buffer = ""
     self.char = None
     self.pos = 0
@@ -80,12 +104,15 @@ class AttributeParser(BaseParser):
 
     val = None
 
-    if self.attr_value is not None:
-      val = self.value_type(self.attr_value)
+    # The attribute has already been set
+    if self.cur_attr.name in self.attrs:
+      raise ParseError("Found duplicate attribute: %s" % self.cur_attr.name)
 
-    self.attrs[self.attr_name] = val
-    self.attr_name = None
-    self.attr_value = None
+    if self.cur_attr.value is not None:
+      self.cur_attr.value = self.value_type(self.cur_attr.value)
+
+    self.attrs[self.cur_attr.name] = self.cur_attr
+    self.cur_attr = Attribute()
     self.quote_char = None
     self.value_type = str
     self.buffer = ""
@@ -117,7 +144,7 @@ class AttributeParser(BaseParser):
     if 'a' <= self.char.lower() <= 'z' or self.char == "-":
       self.buffer += self.char
     else:
-      self.attr_name = self.buffer
+      self.cur_attr.name = self.buffer
 
       if self.char == " ":
         self.state = self.STATE_POST_NAME_WS
@@ -162,9 +189,11 @@ class AttributeParser(BaseParser):
       return
 
     if self.char == "\"":
+      self.cur_attr.quote_char = "\""
       self.quote_char = "\""
       self.state = self.STATE_VALUE
     elif self.char == "\'":
+      self.cur_attr.quote_char = "\'"
       self.quote_char = "\'"
       self.state = self.STATE_VALUE
     elif '0' <= self.char <= '9':
@@ -185,11 +214,11 @@ class AttributeParser(BaseParser):
     # If we hit the other quote char, or there was no quote char and we just hit some whitespace
     if self.char == self.quote_char or self.char == " " and not self.quote_char:
       self.state = self.STATE_PRE_NAME_WS
-      self.attr_value = self.buffer
+      self.cur_attr.value = self.buffer
       self.push_attr()
     elif not self.quote_char and self.char == TOKEN_ATTR_WRAPPER[1]:
       self.state = self.STATE_DONE
-      self.attr_value = self.buffer
+      self.cur_attr.value = self.buffer
       self.push_attr()
     elif not ('0' <= self.char <= '9') and self.value_type == int:
       raise ParseError("String attributes must be surrounded with quotes")

@@ -221,12 +221,7 @@ class BaseTag(object):
         # Classes are inserted manually, above
         continue
 
-      if v is None:
-        text += " %s" % k
-      elif type(v) is int:
-        text += " %s=%d" % (k, v)
-      else:
-        text += " %s=\"%s\"" % (k, v)
+      text += " " + v.render()
 
     text += self.END_OF_TAG
 
@@ -237,9 +232,16 @@ class BaseTag(object):
     dictionary, and returns it as a string
     """
 
-    classes = self.attrs.get("class", "")
+    classes = self.attrs.get("class", None)
 
-    if classes and self.classes:
+    # No classes were set in the attributes
+    if not classes:
+      return " ".join(self.classes)
+
+    classes = classes.value
+
+    # Make room for the classes set in the tag
+    if self.classes:
       classes += " "
 
     classes += " ".join(self.classes)
