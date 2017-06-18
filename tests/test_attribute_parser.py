@@ -66,6 +66,13 @@ class TestAttributeParser(unittest.TestCase):
         "attr": "value"
       }, "some text"))
 
+  def test_quote_chars(self):
+    self.assertEquals(self.ap.parse('(href="#")')[0]["href"].render(),
+      'href="#"')
+
+    self.assertEquals(self.ap.parse("(href='#')")[0]["href"].render(),
+      "href='#'")
+
   def test_errors(self):
     with self.assertRaises(ParseError):
       self.ap.parse('not attributes')

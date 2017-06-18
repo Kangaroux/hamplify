@@ -100,8 +100,8 @@ class TestTagParser(unittest.TestCase):
       }
 
   def test_render(self):
-    assert (self.tp.parse("%a.class#id(href='#'  data-blah=1234 required )").render()
-      == '<a id="id" class="class" href=\'#\' data-blah=1234 required></a>')
+    assert (self.tp.parse("%a.class#id(href='#'  target=\"blank\" data-blah=1234 required )").render()
+      == '<a id="id" class="class" href=\'#\' target="blank" data-blah=1234 required></a>')
 
   def test_self_closing_tag(self):
     e = self.tp.parse("%br")
