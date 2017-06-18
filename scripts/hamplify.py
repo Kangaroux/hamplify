@@ -16,150 +16,162 @@ arg_parser.add_argument("-v", "--verbose", action="store_true",
 arg_parser.add_argument("--django", action="store_true", 
   help="Parses the file(s) with Django syntax and tag names")
 arg_parser.add_argument("--jinja", action="store_true", 
-  help="Parses the file(s) with Jinja syntax and tag names")
+  help="(default) Parses the file(s) with Jinja syntax and tag names")
 arg_parser.add_argument("-w", "--watch", action="store_true",
-  help="Watches the src directory for changes. src MUST refer to a directory if using this flag")
+  help="Watches the src directory for changes. Source path must refer to a directory if using this flag")
 
-args = arg_parser.parse_args()
-dir_stack = []
-parser = None
+class HamplifyCompiler():
+  def __init__(self, args):
+    self.args = args
+    self.parser = None
 
-# If using watch mode, make sure that `src` is a directory
-if args.watch and not os.path.isdir(args.src):
-  print("Source path must point to a directory if using watch mode.")
-  exit(1)
+  def run(self):
+    self._run_checks()
 
-if args.django:
-  parser = Parser({"engine": ENGINE_DJANGO})
-elif args.jinja:
-  parser = Parser({"engine": ENGINE_JINJA})
-else:
-  parser = Parser()
+    args = self.args
 
-# Output dir defaults to the source
-if not args.dst:
-  if os.path.isfile(args.src):
-    args.dst = os.path.dirname(args.src)
-  else:
-    args.dst = args.src
+    print("Working...")
+    earlier = time.time()
 
-# Make sure all extensions start with a period
-for i in range(len(args.ext)):
-  if not args.ext[i].startswith("."):
-    args.ext[i] = "." + args.ext[i]
+    # Converting just a single file
+    if os.path.isfile(args.src):
+      self._convert_file()
 
-# Make sure the output file extention starts with a period
-if not args.out.startswith("."):
-  args.out = "." + args.out
+      if args.verbose:
+        print()
 
-# Normalize paths to be the full path
-args.src = os.path.realpath(args.src)
-args.dst = os.path.realpath(args.dst)
+      print("Finished converting in %d ms." % ((time.time() - earlier) * 1000))
+    else:
+      count, converted = self._convert_dir()
 
-def main():
-  """ Main entrypoint for the script
-  """
+      if args.verbose and count > 0:
+        print()
 
-  if not os.path.exists(args.src):
-    print("Source path or file does not exist: %s" % args.src)
-    exit(1)
+      print(termcolor.colored("Finished converting %d file(s) in %d ms." 
+        % (converted, (time.time() - earlier) * 1000), "green"))
 
-  print("Working...")
-  earlier = time.time()
+      if count != converted:
+        print(termcolor.colored("FAILED: %d file(s) failed to compile." % (count - converted), "red"))
 
-  # Converting just a single file
-  if os.path.isfile(args.src):
-    convert_file()
+  def _run_checks(self):
+    """ Runs some checks on the arguments and normalizes paths
+    """
+
+    args = self.args
+
+    # If using watch mode, make sure that `src` is a directory
+    if args.watch and not os.path.isdir(args.src):
+      print("Source path must point to a directory when using watch mode (-w, --watch flag).")
+      exit(1)
+
+    if not os.path.exists(args.src):
+      print("Source path or file does not exist: %s" % args.src)
+      exit(1)
+
+    if args.django:
+      self.parser = Parser({"engine": ENGINE_DJANGO})
+    else:
+      self.parser = Parser({"engine": ENGINE_JINJA})
+
+    # Output dir defaults to the source
+    if not args.dst:
+      if os.path.isfile(args.src):
+        args.dst = os.path.dirname(args.src)
+      else:
+        args.dst = args.src
+
+    # Make sure all extensions start with a period
+    for i in range(len(args.ext)):
+      if not args.ext[i].startswith("."):
+        args.ext[i] = "." + args.ext[i]
+
+    # Make sure the output file extention starts with a period
+    if not args.out.startswith("."):
+      args.out = "." + args.out
+
+    # Normalize paths to be the full path
+    args.src = os.path.realpath(args.src)
+    args.dst = os.path.realpath(args.dst)
+
+  def _create_out_dir(self, path):
+    try:
+      os.makedirs(path)
+    except OSError:
+      pass
+
+  def _convert_dir(self):
+    """ Recursively walks a path, converting every haml file it finds, then returns how
+    many files were converted
+    """
+
+    args = self.args
+    file_count = 0
+    converted = 0
+    
+    for path, dirs, files in os.walk(args.src):
+      out_path = os.path.join(args.dst, os.path.relpath(path, args.src))
+
+      # If the dst folder is inside the src folder, skip over it
+      if path.startswith(args.dst) and args.dst != args.src:
+        continue
+
+      self._create_out_dir(out_path)
+      
+      for f in files:
+        # Check if the file extension matches
+        for ext in args.ext:
+          if f.endswith(ext):
+            file_count += 1
+
+            # Remove the extension so we can replace it with the output extension
+            if self._write_file(os.path.join(path, f), os.path.join(out_path, f[:-len(ext)]) + args.out):
+              converted += 1
+              break
+
+    return file_count, converted
+
+  def _convert_file(self):
+    """ Converts a single file
+    """
+
+    args = self.args
+
+    self._create_out_dir(os.path.dirname(args.dst))
+    file_name = os.path.basename(args.src).split(".")[0] + args.out
+    self._write_file(args.src, os.path.join(args.dst, file_name))
+
+  def _write_file(self, in_file, out_file):
+    """ Converts a file and saves it to the destination folder
+    """
+
+    args = self.args
 
     if args.verbose:
       print()
+      print("Input file:   %s" % os.path.relpath(in_file))
+      print("Output file:  %s" % os.path.relpath(out_file))
 
-    print("Finished converting in %d ms." % ((time.time() - earlier) * 1000))
-  else:
-    count, converted = convert_dir()
+    earlier = time.time()
+    success = True
 
-    if args.verbose and count > 0:
-      print()
+    with open(in_file, "r") as fin:
+      with open(out_file, "w") as fout:
+        buffer = fin.read()
 
-    print(termcolor.colored("Finished converting %d file(s) in %d ms." 
-      % (converted, (time.time() - earlier) * 1000), "green"))
+        try:
+          fout.write(self.parser.parse(buffer).render())
+        except ParseError as pe:
+          pe.file_path = os.path.relpath(in_file)
+          print(termcolor.colored(pe, "red"))
+          success = False
 
-    if count != converted:
-      print(termcolor.colored("FAILED: %d file(s) failed to compile." % (count - converted), "red"))
+    if args.verbose:
+      if success:
+        print("Conversion took %.3f ms" % ((time.time() - earlier) * 1000))
+      else:
+        print("Conversion took %.3f ms %s" % ((time.time() - earlier) * 1000, termcolor.colored("(FAILED)", "red")))
 
-def create_out_dir(path):
-  try:
-    os.makedirs(path)
-  except OSError:
-    pass
+    return success
 
-def convert_dir():
-  """ Recursively walks a path, converting every haml file it finds, then returns how
-  many files were converted
-  """
-
-  file_count = 0
-  converted = 0
-  
-  for path, dirs, files in os.walk(args.src):
-    out_path = os.path.join(args.dst, os.path.relpath(path, args.src))
-
-    # This is the case where the destination path is inside the source folder.
-    # If we find it while walking, skip over it, otherwise weird recursive
-    # stuff can happen
-    if path.startswith(args.dst) and args.dst != args.src:
-      continue
-
-    create_out_dir(out_path)
-    
-    for f in files:
-      # Check if the file extension matches
-      for ext in args.ext:
-        if f.endswith(ext):
-          file_count += 1
-
-          # Remove the extension so we can replace it with the output extension
-          if write_file(os.path.join(path, f), os.path.join(out_path, f[:-len(ext)]) + args.out):
-            converted += 1
-            break
-
-  return file_count, converted
-
-def convert_file():
-  """ Converts a single file
-  """
-
-  create_out_dir(os.path.dirname(args.dst))
-  file_name = os.path.basename(args.src).split(".")[0] + args.out
-  write_file(args.src, os.path.join(args.dst, file_name))
-
-def write_file(in_file, out_file):
-  """ Converts a file and saves it to the destination folder
-  """
-
-  if args.verbose:
-    print()
-    print("Input file:   %s" % os.path.relpath(in_file))
-    print("Output file:  %s" % os.path.relpath(out_file))
-
-  earlier = time.time()
-  success = True
-
-  with open(in_file, "r") as fin:
-    with open(out_file, "w") as fout:
-      buffer = fin.read()
-
-      try:
-        fout.write(parser.parse(buffer).render())
-      except ParseError as pe:
-        pe.file_path = os.path.relpath(in_file)
-        print(termcolor.colored(pe, "red"))
-        success = False
-
-  if args.verbose:
-    if success:
-      print("Conversion took %.3f ms" % ((time.time() - earlier) * 1000))
-    else:
-      print("Conversion took %.3f ms %s" % ((time.time() - earlier) * 1000, termcolor.colored("(FAILED)", "red")))
-
-  return success
+def main():
+  HamplifyCompiler(arg_parser.parse_args()).run()
