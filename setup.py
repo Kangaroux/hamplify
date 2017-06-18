@@ -1,6 +1,4 @@
-from setuptools import setup, find_packages
-
-print(find_packages())
+from setuptools import setup
 
 setup(name="hamplify",
   version="0.1",

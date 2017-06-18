@@ -119,8 +119,7 @@ some text
   def test_parse_error(self):
     try:
       self.p.parse("""
-    %tag
-        too much indentation
+  %tag
         """)
     except ParseError as pe:
       s = str(pe)

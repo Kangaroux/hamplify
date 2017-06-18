@@ -17,10 +17,17 @@ arg_parser.add_argument("--django", action="store_true",
   help="Parses the file(s) with Django syntax and tag names")
 arg_parser.add_argument("--jinja", action="store_true", 
   help="Parses the file(s) with Jinja syntax and tag names")
+arg_parser.add_argument("-w", "--watch", action="store_true",
+  help="Watches the src directory for changes. src MUST refer to a directory if using this flag")
 
 args = arg_parser.parse_args()
 dir_stack = []
 parser = None
+
+# If using watch mode, make sure that `src` is a directory
+if args.watch and not os.path.isdir(args.src):
+  print("Source path must point to a directory if using watch mode.")
+  exit(1)
 
 if args.django:
   parser = Parser({"engine": ENGINE_DJANGO})
@@ -41,6 +48,7 @@ for i in range(len(args.ext)):
   if not args.ext[i].startswith("."):
     args.ext[i] = "." + args.ext[i]
 
+# Make sure the output file extention starts with a period
 if not args.out.startswith("."):
   args.out = "." + args.out
 

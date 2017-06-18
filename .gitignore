@@ -1,8 +1,10 @@
 .coverage
 *.pyc
+*.sublime-project
+*.sublime-workspace
 
-venv/
-venv2/
 .cache/
-hamplify.egg-info/
 __pycache__/
+hamplify.egg-info/
+templates/
+venv/
