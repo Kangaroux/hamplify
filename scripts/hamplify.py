@@ -29,29 +29,31 @@ class HamplifyCompiler():
     self._run_checks()
 
     args = self.args
-
-    print("Working...")
     earlier = time.time()
 
-    # Converting just a single file
-    if os.path.isfile(args.src):
-      self._convert_file()
+    if not args.watch:
+      print("Working...")
+      if os.path.isfile(args.src):
+        self._convert_file()
 
-      if args.verbose:
-        print()
+        if args.verbose:
+          print()
 
-      print("Finished converting in %d ms." % ((time.time() - earlier) * 1000))
+        print("Finished converting in %d ms." % ((time.time() - earlier) * 1000))
+      else:
+        count, converted = self._convert_dir()
+
+        if args.verbose and count > 0:
+          print()
+
+        print(termcolor.colored("Finished converting %d file(s) in %d ms." 
+          % (converted, (time.time() - earlier) * 1000), "green"))
+
+        if count != converted:
+          print(termcolor.colored("FAILED: %d file(s) failed to compile." % (count - converted), "red"))
     else:
-      count, converted = self._convert_dir()
-
-      if args.verbose and count > 0:
-        print()
-
-      print(termcolor.colored("Finished converting %d file(s) in %d ms." 
-        % (converted, (time.time() - earlier) * 1000), "green"))
-
-      if count != converted:
-        print(termcolor.colored("FAILED: %d file(s) failed to compile." % (count - converted), "red"))
+      print("Watching for changes...")
+      self._watch()
 
   def _run_checks(self):
     """ Runs some checks on the arguments and normalizes paths
@@ -172,6 +174,43 @@ class HamplifyCompiler():
         print("Conversion took %.3f ms %s" % ((time.time() - earlier) * 1000, termcolor.colored("(FAILED)", "red")))
 
     return success
+
+  def _watch(self):
+    """ Watches the src dir for changes. This will trigger a full compile the first
+    time it runs
+    """
+
+    # A dictionary of all the file paths and their last modified timestamps.
+    # A file is converted if it doesn't exist in this dictionary yet, or if
+    # the current timestamp is newer than what's in the dictionary
+    watch_paths = {}
+    args = self.args
+
+    while True:
+      for path, dirs, files in os.walk(args.src):
+        out_path = os.path.join(args.dst, os.path.relpath(path, args.src))
+
+        # If the dst folder is inside the src folder, skip over it
+        if path.startswith(args.dst) and args.dst != args.src:
+          continue
+
+        self._create_out_dir(out_path)
+        
+        for f in files:
+          file_path = os.path.join(path, f)
+          last_modified = os.path.getmtime(file_path)
+
+          # The file has not been converted before or it recently changed
+          if file_path not in watch_paths or watch_paths[file_path] < last_modified:
+            # Check if the file extension matches
+            for ext in args.ext:
+              if f.endswith(ext):
+                # Remove the extension so we can replace it with the output extension
+                if self._write_file(file_path, os.path.join(out_path, f[:-len(ext)]) + args.out):
+                  watch_paths[file_path] = last_modified
+                  break
+
+      time.sleep(0.5)
 
 def main():
   HamplifyCompiler(arg_parser.parse_args()).run()
