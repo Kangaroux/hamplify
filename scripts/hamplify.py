@@ -1,4 +1,9 @@
-import argparse, os, termcolor, time
+import argparse, os, time
+
+try:
+  import termcolor
+except ImportError:
+  pass
 
 from hamplify.config import *
 from hamplify.parsers.parser import Parser
@@ -19,6 +24,12 @@ arg_parser.add_argument("--jinja", action="store_true",
   help="(default) Parses the file(s) with Jinja syntax and tag names")
 arg_parser.add_argument("-w", "--watch", action="store_true",
   help="Watches the src directory for changes. Source path must refer to a directory if using this flag")
+
+def color(text, col):
+  try:
+    return termcolor.colored(text, col)
+  except NameError:
+    return text
 
 class HamplifyCompiler():
   def __init__(self, args):
@@ -46,11 +57,11 @@ class HamplifyCompiler():
         if args.verbose and count > 0:
           print()
 
-        print(termcolor.colored("Finished converting %d file(s) in %d ms." 
+        print(color("Finished converting %d file(s) in %d ms." 
           % (converted, (time.time() - earlier) * 1000), "green"))
 
         if count != converted:
-          print(termcolor.colored("FAILED: %d file(s) failed to compile." % (count - converted), "red"))
+          print(color("FAILED: %d file(s) failed to compile." % (count - converted), "red"))
     else:
       print("Watching for changes...")
       self._watch()
@@ -164,14 +175,14 @@ class HamplifyCompiler():
           fout.write(self.parser.parse(buffer).render())
         except ParseError as pe:
           pe.file_path = os.path.relpath(in_file)
-          print(termcolor.colored(pe, "red"))
+          print(color(pe, "red"))
           success = False
 
     if args.verbose:
       if success:
         print("Conversion took %.3f ms" % ((time.time() - earlier) * 1000))
       else:
-        print("Conversion took %.3f ms %s" % ((time.time() - earlier) * 1000, termcolor.colored("(FAILED)", "red")))
+        print("Conversion took %.3f ms %s" % ((time.time() - earlier) * 1000, color("(FAILED)", "red")))
 
     return success
 
