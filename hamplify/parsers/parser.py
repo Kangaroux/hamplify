@@ -6,6 +6,7 @@ from hamplify.element import *
 from hamplify.parsers.block import BlockParser
 from hamplify.parsers.comment import CommentParser
 from hamplify.parsers.doctype import DoctypeParser
+from hamplify.parsers.filter import FilterParser
 from hamplify.parsers.tags import TagParser
 
 # Supports CRLF and LF newlines
@@ -15,10 +16,11 @@ class Parser(BaseParser):
   def __init__(self, options=None):
     super(Parser, self).__init__(options)
 
-    self.tag_parser = TagParser(options)
     self.block_parser = BlockParser(options)
-    self.doctype_parser = DoctypeParser(options)
     self.comment_parser = CommentParser(options)
+    self.doctype_parser = DoctypeParser(options)
+    self.filter_parser = FilterParser(options)
+    self.tag_parser = TagParser(options)
 
     self._reset()
 
@@ -50,7 +52,7 @@ class Parser(BaseParser):
           level = self._block_level()
 
           # Comments can span multiple lines, so make sure we don't parse them
-          if self._in_comment(indentation):
+          if self._dont_parse(indentation):
             self._push(Text(line))
             continue
 
@@ -92,6 +94,9 @@ class Parser(BaseParser):
 
     if line.startswith(TOKEN_DOCTYPE):
       return self.doctype_parser.parse(line)
+
+    if line.startswith(TOKEN_FILTER):
+      return self.filter_parser.parse(line)
 
     return Text(line)
 
@@ -151,8 +156,8 @@ class Parser(BaseParser):
           floored = math.floor(indent)
 
           # Indentation must be an even multiple of previous indentation, unless we're
-          # inside a comment
-          if floored < indent and not self._in_comment(floored):
+          # inside an element which is not parsed, like a comment or filter
+          if floored < indent and not self._dont_parse(floored):
             raise ParseError("Uneven indentation level (expected multiple of %d)" % self.ws_per_indent)
 
           return floored
@@ -167,12 +172,12 @@ class Parser(BaseParser):
     # This is a blank line (don't count indentation)
     return None
 
-  def _in_comment(self, indentation=None):
-    """ Returns true if the text at a given indentation would be captured
-    as a comment
+  def _dont_parse(self, indentation=None):
+    """ Returns True if the cursor is currently inside an element
+    which should not have its children parsed
     """
 
-    return indentation >= self._block_level() and type(self.cursor) is Comment
+    return indentation >= self._block_level() and isinstance(self.cursor, Node) and not self.cursor._parse_children()
 
   def _get_newest_child(self):
     """ Returns the most recently added in child from the cursor, that isn't

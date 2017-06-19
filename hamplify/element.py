@@ -81,6 +81,12 @@ class Node(Element):
 
     return text
 
+  def _parse_children(self):
+    """ Whether this element should have its children parsed
+    """
+
+    return True
+
 class RootNode(Node):
   def __init__(self):
     super(RootNode, self).__init__()
@@ -125,6 +131,33 @@ class Comment(Node):
       return " -->"
     else:
       return ""
+
+  def _parse_children(self):
+    return False
+
+class FilterPlain(Node):
+  def _parse_children(self):
+    return False
+
+class FilterJavascript(Node):
+  def _pre_render(self):
+    return '<script type="text/javascript">'
+
+  def _post_render(self):
+    return '</script>'
+
+  def _parse_children(self):
+    return False
+
+class FilterCSS(Node):
+  def _pre_render(self):
+    return '<style type="text/css">'
+
+  def _post_render(self):
+    return '</style>'
+
+  def _parse_children(self):
+    return False
 
 class BaseBlock(object):
   def __init__(self):

@@ -1,12 +1,13 @@
-TOKEN_TAG = "%"
-TOKEN_CLASS = "."
-TOKEN_ID = "#"
-TOKEN_ATTR_WRAPPER = ("(", ")")
 TOKEN_ATTR_SETVAL = "="
+TOKEN_ATTR_WRAPPER = ("(", ")")
 TOKEN_BLOCK = "-"
-TOKEN_HTML_COMMENT = "-#"
+TOKEN_CLASS = "."
 TOKEN_COMMENT = "/"
 TOKEN_DOCTYPE = "!!!"
+TOKEN_FILTER = ":"
+TOKEN_HTML_COMMENT = "-#"
+TOKEN_ID = "#"
+TOKEN_TAG = "%"
 
 TAG_TOKENS = (TOKEN_TAG, TOKEN_CLASS, TOKEN_ID)
 COMMENT_TOKENS = (TOKEN_HTML_COMMENT, TOKEN_COMMENT)
@@ -15,6 +16,10 @@ INDENTATION = (" ", "\t")
 ENGINE_DJANGO = "django"
 ENGINE_JINJA = "jinja"
 ENGINES = ("django", "jinja")
+
+FILTER_PLAIN = TOKEN_FILTER + "plain"
+FILTER_JAVASCRIPT = TOKEN_FILTER + "javascript"
+FILTER_CSS = TOKEN_FILTER + "css"
 
 # List of tags which are considered self closing
 SELF_CLOSING_TAGS = (
