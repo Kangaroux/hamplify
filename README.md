@@ -3,7 +3,7 @@
 [![PyPI version](https://badge.fury.io/py/hamplify.svg)](https://badge.fury.io/py/hamplify)
 
 # hamplify
-`hamplify` is a lightweight [HAML-ish](http://haml.info/) parser written in Python.
+`hamplify` is a lightweight [HAML-ish](http://haml.info/) compiler written in Python.
 
 Here are some reasons to use `hamplify`:
 
@@ -34,4 +34,36 @@ pip install -r reqs/test.txt
 Run the tests 
 ```
 pytest --cov=hamplify
+```
+
+## Syntax Sample
+```HAML
+!!!
+%html
+  %head
+    %title
+      - block title
+        My Site
+
+    %link(rel="stylesheet" href="style.css")
+
+    :css
+      p {
+        background-color: #CCC;
+      }
+
+  %body
+    -# This is an HTML comment
+    / This is another comment, 
+      but it won't be rendered
+
+    .container
+      %p A paragraph with some text.
+      %button.btn#my-button A button
+
+      :plain
+        This is a plaintext block. The compiler will not parse anything in here.
+
+    :javascript
+      console.log("Hello, world!");
 ```
