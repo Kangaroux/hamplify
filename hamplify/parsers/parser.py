@@ -44,11 +44,16 @@ class Parser(BaseParser):
     try:
       for line in text:
         indentation = self._get_indentation(line)
-        line = line.lstrip()
         line_number += 1
 
         # If the line has indentation, then it cannot be blank/whitespace
         if indentation is not None:
+
+          # Remove the indentation from the beginning of the line. We could do a lstrip
+          # here, but we want to preserve excess whitespace in comments and filter blocks
+          if self.ws_per_indent is not None:
+            line = line[indentation*self.ws_per_indent:]
+
           level = self._block_level()
 
           # Comments can span multiple lines, so make sure we don't parse them
@@ -132,10 +137,13 @@ class Parser(BaseParser):
     return len(self.stack) - 1
 
   def _get_indentation(self, line):
-    """ Calculates the indentation level of the line
+    """ Returns the indentation level of a line. Returns None if the line is blank
     """
 
     last = None
+
+    if not line.strip():
+      return None
 
     for i in range(len(line)):
       c = line[i]
@@ -160,6 +168,11 @@ class Parser(BaseParser):
           if floored < indent and not self._dont_parse(floored):
             raise ParseError("Uneven indentation level (expected multiple of %d)" % self.ws_per_indent)
 
+          # If we're inside a block that should not be parsed, we only want to
+          # remove the minimum amount of whitespace necessary
+          if self._dont_parse(floored):
+            return self._block_level()
+
           return floored
 
       # The line starts with whitespace but does not match with what we expect
@@ -168,9 +181,6 @@ class Parser(BaseParser):
         raise ParseError("Mismatched whitespace at start of line (use spaces or tabs, not both)")
 
       last = c
-
-    # This is a blank line (don't count indentation)
-    return None
 
   def _dont_parse(self, indentation=None):
     """ Returns True if the cursor is currently inside an element

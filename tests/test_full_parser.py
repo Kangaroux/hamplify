@@ -87,10 +87,11 @@ class TestFullParser(unittest.TestCase):
          %  bad tag
 
       -# HTML comment
-      """)
+         some stuff
+  """)
 
     assert (html.render() == "<!DOCTYPE html><html><head><title>My cool title</title></head><body>"
-      "<div class=\"container\"><p>some text</p><!-- HTML comment --></div></body></html>")
+      "<div class=\"container\"><p>some text</p><!-- HTML comment\n some stuff --></div></body></html>")
 
   def test_blocks(self):
     self.p = Parser({
@@ -137,7 +138,7 @@ some text
 %a link
       """)
 
-    assert html.render() == '<p>a paragraph</p>some text\n.asdf\n%p blah<a>link</a>'
+    assert html.render() == '<p>a paragraph</p>some text\n.asdf\n %p blah<a>link</a>'
 
   def test_javascript_filter(self):
     html = self.p.parse("""
@@ -165,5 +166,5 @@ some text
 %a link
       """)
 
-    assert (html.render() == '<p>a paragraph</p><style type="text/css">.class {\ncolor: #333;\n}'
-      '\n\n/* Comment */\n#some-id {\nmargin: 0px;\n}</style><a>link</a>')
+    assert (html.render() == '<p>a paragraph</p><style type="text/css">.class {\n  color: #333;\n}'
+      '\n\n/* Comment */\n#some-id {\n  margin: 0px;\n}</style><a>link</a>')

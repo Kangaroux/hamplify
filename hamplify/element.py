@@ -109,7 +109,23 @@ class Text(Element):
   def is_empty(self):
     return len(self.text.strip()) == 0
 
-class Comment(Node):
+class Filter(Node):
+  def _parse_children(self):
+    return False
+
+  def _render_children(self):
+    text = ""
+
+    for i in range(len(self.children)):
+      text += self.children[i].render()
+
+      if i != len(self.children) - 1:
+        text += "\n"
+
+    # Strip any trailing newlines
+    return text.rstrip("\n")
+
+class Comment(Filter):
   """ Comment block
   """
 
@@ -131,24 +147,6 @@ class Comment(Node):
       return " -->"
     else:
       return ""
-
-  def _parse_children(self):
-    return False
-
-class Filter(Node):
-  def _parse_children(self):
-    return False
-
-  def _render_children(self):
-    text = ""
-
-    for i in range(len(self.children)):
-      text += self.children[i].render()
-
-      if i != len(self.children) - 1:
-        text += "\n"
-
-    return text
 
 class FilterPlain(Filter):
   pass
