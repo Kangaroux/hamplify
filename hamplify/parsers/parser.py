@@ -52,7 +52,7 @@ class Parser(BaseParser):
           # Remove the indentation from the beginning of the line. We could do a lstrip
           # here, but we want to preserve excess whitespace in comments and filter blocks
           if self.ws_per_indent is not None:
-            line = line[indentation*self.ws_per_indent:]
+            line = line[int(indentation*self.ws_per_indent):]
 
           level = self._block_level()
 
