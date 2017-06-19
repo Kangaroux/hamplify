@@ -135,29 +135,37 @@ class Comment(Node):
   def _parse_children(self):
     return False
 
-class FilterPlain(Node):
+class Filter(Node):
   def _parse_children(self):
     return False
 
-class FilterJavascript(Node):
+  def _render_children(self):
+    text = ""
+
+    for i in range(len(self.children)):
+      text += self.children[i].render()
+
+      if i != len(self.children) - 1:
+        text += "\n"
+
+    return text
+
+class FilterPlain(Filter):
+  pass
+
+class FilterJavascript(Filter):
   def _pre_render(self):
     return '<script type="text/javascript">'
 
   def _post_render(self):
     return '</script>'
 
-  def _parse_children(self):
-    return False
-
-class FilterCSS(Node):
+class FilterCSS(Filter):
   def _pre_render(self):
     return '<style type="text/css">'
 
   def _post_render(self):
     return '</style>'
-
-  def _parse_children(self):
-    return False
 
 class BaseBlock(object):
   def __init__(self):

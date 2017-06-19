@@ -126,3 +126,44 @@ some text
       assert "line 2" in s
       assert "indentation" in s
       assert "%tag" in s
+
+  def test_plain_filter(self):
+    html = self.p.parse("""
+%p a paragraph
+:plain
+  some text
+  .asdf
+   %p blah
+%a link
+      """)
+
+    assert html.render() == '<p>a paragraph</p>some text\n.asdf\n%p blah<a>link</a>'
+
+  def test_javascript_filter(self):
+    html = self.p.parse("""
+%p a paragraph
+:javascript
+  var myVar = "asdf";
+  // Comment
+%a link
+      """)
+
+    assert html.render() == '<p>a paragraph</p><script type="text/javascript">var myVar = "asdf";\n// Comment</script><a>link</a>'
+
+  def test_css_filter(self):
+    html = self.p.parse("""
+%p a paragraph
+:css
+  .class {
+    color: #333;
+  }
+
+  /* Comment */
+  #some-id {
+    margin: 0px;
+  }
+%a link
+      """)
+
+    assert (html.render() == '<p>a paragraph</p><style type="text/css">.class {\ncolor: #333;\n}'
+      '\n\n/* Comment */\n#some-id {\nmargin: 0px;\n}</style><a>link</a>')
