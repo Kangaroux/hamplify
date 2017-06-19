@@ -1,5 +1,6 @@
 [![Build Status](https://travis-ci.org/Kangaroux/hamplify.svg?branch=master)](https://travis-ci.org/Kangaroux/hamplify)
 [![Coverage Status](https://coveralls.io/repos/github/Kangaroux/hamplify/badge.svg?branch=master)](https://coveralls.io/github/Kangaroux/hamplify?branch=master)
+[![PyPI version](https://badge.fury.io/py/hamplify.svg)](https://badge.fury.io/py/hamplify)
 
 # hamplify
 `hamplify` is a lightweight [HAML-ish](http://haml.info/) parser written in Python.
