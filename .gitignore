@@ -5,6 +5,7 @@
 
 .cache/
 __pycache__/
+dist/
 hamplify.egg-info/
 templates/
 venv/
