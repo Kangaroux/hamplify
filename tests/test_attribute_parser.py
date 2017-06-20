@@ -64,7 +64,7 @@ class TestAttributeParser(unittest.TestCase):
     self.assertEquals(self.ap.parse('(attr="value") some text'),
       ({
         "attr": "value"
-      }, "some text"))
+      }, " some text"))
 
   def test_quote_chars(self):
     self.assertEquals(self.ap.parse('(href="#")')[0]["href"].render(),

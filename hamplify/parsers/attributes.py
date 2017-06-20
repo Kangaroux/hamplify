@@ -95,7 +95,7 @@ class AttributeParser(BaseParser):
     if self.state != self.STATE_DONE:
       raise ParseError("Reached EOL while parsing attributes")
 
-    return (self.attrs, text[self.pos:].lstrip())
+    return (self.attrs, text[self.pos:])
 
   def push_attr(self):
     """ Adds a new attribute to the dictionary. If this is called before a value is

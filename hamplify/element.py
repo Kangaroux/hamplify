@@ -109,6 +109,13 @@ class Text(Element):
   def is_empty(self):
     return len(self.text.strip()) == 0
 
+class Variable(Text):
+  """ A jinja/django variable written with as '= var'
+  """
+
+  def render(self):
+    return "{{%s}}" % self.text
+
 class Filter(Node):
   def _parse_children(self):
     return False

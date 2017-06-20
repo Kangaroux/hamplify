@@ -1,11 +1,14 @@
 import unittest
 
 from hamplify.element import *
-from hamplify.config import ParseError
+from hamplify.config import *
 from hamplify.parsers.tags import TagParser
 
 class TestTagParser(unittest.TestCase):
-  tp = TagParser()
+  tp = None
+
+  def setUp(self):
+    self.tp = TagParser()
 
   def test_plaintext(self):
     e = self.tp.parse("      ")
@@ -69,14 +72,6 @@ class TestTagParser(unittest.TestCase):
     with self.assertRaises(ParseError):
       self.tp.parse("%button#id/")
 
-  def test_remainder(self):
-    e = self.tp.parse("%p some text")
-    assert len(e.children) == 1
-    assert e.children[0].text == "some text"
-
-    e = self.tp.parse("%textarea   whitespace   ")
-    assert e.children[0].text == "  whitespace   "
-
   def test_no_tag_name(self):
     e = self.tp.parse(".class#id some text")
     assert e.classes == ["class"]
@@ -110,3 +105,15 @@ class TestTagParser(unittest.TestCase):
 
     e = self.tp.parse("%link(rel='stylesheet' href='blah.css')")
     assert e.render() == "<link rel='stylesheet' href='blah.css' />"
+
+  def test_variable(self):
+    self.tp = TagParser({"engine": ENGINE_DJANGO})
+
+    e = self.tp.parse("%p= myvar | filter")
+    assert e.render() == "<p>{{myvar | filter}}</p>"
+
+    e = self.tp.parse("%p = after the tag")
+    assert e.render() == "<p>= after the tag</p>"
+
+    e = self.tp.parse("%a(href='#')= mylink")
+    assert e.render() == "<a href='#'>{{mylink}}</a>"

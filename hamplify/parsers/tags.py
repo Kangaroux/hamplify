@@ -2,6 +2,7 @@ import re
 
 from .attributes import AttributeParser
 from .base import BaseParser
+from .variable import VariableParser
 from hamplify.config import *
 from hamplify.element import SelfClosingTag, Tag, Text
 
@@ -16,6 +17,7 @@ class TagParser(BaseParser):
     super(TagParser, self).__init__(options)
 
     self.ap = AttributeParser(options)
+    self.vp = VariableParser(options)
     self._reset()
 
   def _reset(self):
@@ -132,9 +134,15 @@ class TagParser(BaseParser):
 
       self.tag.attrs = attrs
 
-      if text:
-        self.tag.add_child(Text(text))
-    elif self.text[0] == " ":
-      self.tag.add_child(Text(self.text[1:]))
+      if text.strip():
+        # '= var' found immediately after the tag
+        if text.startswith(TOKEN_VARIABLE):
+          self.tag.add_child(self.vp.parse(text))
+        else:
+          self.tag.add_child(Text(text.lstrip()))
+    elif self.text.startswith(" "):
+      self.tag.add_child(Text(self.text.lstrip()))
+    elif self.text.startswith(TOKEN_VARIABLE):
+      self.tag.add_child(self.vp.parse(self.text))
     else:
       raise ParseError("Expected a '%s' or whitespace" % TOKEN_ATTR_WRAPPER[0])
