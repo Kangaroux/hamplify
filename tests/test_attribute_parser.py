@@ -100,3 +100,6 @@ class TestAttributeParser(unittest.TestCase):
 
     with self.assertRaises(ParseError):
       self.ap.parse('(incomplete="test)')
+
+    with self.assertRaises(ParseError):
+      self.ap.parse('(id="myid" id="anotherid")')

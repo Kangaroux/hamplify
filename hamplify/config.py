@@ -109,9 +109,6 @@ class ParseError(Exception):
     if self.col:
       text += "at col %d " % self.col
 
-    if self.file_path:
-      text += "in file %s" % self.file_path
-
     text = text.strip()
 
     text += "\n\n%s" % self.line

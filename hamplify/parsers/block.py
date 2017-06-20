@@ -30,8 +30,6 @@ class BlockParser(BaseParser):
       return self.new_block(DJANGO_BLOCKS, name, args, sibling)
     elif self.options.get("engine") == ENGINE_JINJA:
       return self.new_block(JINJA_BLOCKS, name, args, sibling)
-    else:
-      return self.new_inline_block(name, args)
 
   def new_block(self, block_list, name, args, sibling):
     """ Returns a new Block element if the block is not inline for the given
