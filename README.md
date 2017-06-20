@@ -61,6 +61,8 @@ pytest --cov=hamplify
       %p A paragraph with some text.
       %button.btn#my-button A button
 
+      %a(href='#')= my_link|yourfilter
+
       :plain
         This is a plaintext block. The compiler will not parse anything in here.
 
