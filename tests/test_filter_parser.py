@@ -16,6 +16,9 @@ class TestCommentParser(unittest.TestCase):
 
   def test_javascript_filter(self):
     self.assertIsInstance(self.fp.parse(":javascript"), FilterJavascript)
+    self.assertIsInstance(self.fp.parse(":js"), FilterJavascript)
 
   def test_css_filter(self):
     self.assertIsInstance(self.fp.parse(":css"), FilterCSS)
+    self.assertIsInstance(self.fp.parse(":style"), FilterCSS)
+    self.assertIsInstance(self.fp.parse(":stylesheet"), FilterCSS)

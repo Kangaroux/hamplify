@@ -18,9 +18,9 @@ ENGINE_DJANGO = "django"
 ENGINE_JINJA = "jinja"
 ENGINES = ("django", "jinja")
 
-FILTER_PLAIN = TOKEN_FILTER + "plain"
-FILTER_JAVASCRIPT = TOKEN_FILTER + "javascript"
-FILTER_CSS = TOKEN_FILTER + "css"
+FILTER_PLAIN = "plain"
+FILTER_JAVASCRIPT = ("javascript", "js")
+FILTER_CSS = ("css", "style", "stylesheet")
 
 # List of tags which are considered self closing
 SELF_CLOSING_TAGS = (
