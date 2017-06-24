@@ -7,11 +7,11 @@
 
 Here are some reasons to use `hamplify`:
 
-- **Template Support**: Included support for Django and Jinja2 templates
-- **Compatibility**: Works with Python 2.7 and 3.3+
-- **Lightweight**: Requires no dependencies and is framework agnostic
-- **Smaller Templates**: Excess whitespace from templates is automatically removed
-- **Painless**: Integrates seamlessly into existing projects
+- Compatible with Python 2.7 and 3.3+
+- Requires **NO** dependencies and is framework agnostic
+- Support for Django and Jinja2 templates
+- Templates are automatically minified
+- Integrates seamlessly into existing projects
 
 ## Using hamplify
 
@@ -61,7 +61,7 @@ pytest --cov=hamplify
       %p A paragraph with some text.
       %button.btn#my-button A button
 
-      %a(href='#')= my_link|yourfilter
+      %a(href='#')= the_link|some_filter
 
       :plain
         This is a plaintext block. The compiler will not parse anything in here.
