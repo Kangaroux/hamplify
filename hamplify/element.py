@@ -133,7 +133,7 @@ class Filter(Node):
     return text.rstrip("\n")
 
 class Comment(Filter):
-  """ Comment block
+  """ HTML comment block
   """
 
   def __init__(self, render=True):
@@ -154,6 +154,22 @@ class Comment(Filter):
       return " -->"
     else:
       return ""
+
+class ConditionalComment(Filter):
+  """ Conditional comment block. Conditional comments are used for checking
+  if a user is using IE and, if so, what version
+  """
+
+  def __init__(self, condition):
+    super(ConditionalComment, self).__init__()
+
+    self.condition = condition
+
+  def _pre_render(self):
+    return "<!--[%s]>" % self.condition
+
+  def _post_render(self):
+    return "<![endif]-->"
 
 class FilterPlain(Filter):
   pass
