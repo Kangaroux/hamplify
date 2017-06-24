@@ -168,3 +168,11 @@ some text
 
     assert (html.render() == '<p>a paragraph</p><style type="text/css">.class {\n  color: #333;\n}'
       '\n\n/* Comment */\n#some-id {\n  margin: 0px;\n}</style><a>link</a>')
+
+  def test_conditional_comment(self):
+    html = self.p.parse("""
+-#[if IE]  
+  do something
+      """)
+
+    assert html.render() == "<!--[if IE]>do something<![endif]-->"

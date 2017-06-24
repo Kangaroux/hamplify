@@ -24,3 +24,9 @@ class TestCommentParser(unittest.TestCase):
     e = self.cp.parse("/ %element.class")
     assert " %element.class" == e.children[0].text
     assert "" == e.render()
+
+  def test_conditional_comment(self):
+    self.assertIsInstance(self.cp.parse("-#[condition]"), ConditionalComment)
+
+    e = self.cp.parse("-#[if IE]")
+    assert e.condition == "if IE"
