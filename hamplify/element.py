@@ -117,6 +117,10 @@ class Variable(Text):
     return "{{%s}}" % self.text
 
 class Filter(Node):
+  """ The contents of a filter are not parsed. The text is instead just
+  printed out verbatim. 
+  """
+
   def _parse_children(self):
     return False
 
@@ -155,7 +159,7 @@ class Comment(Filter):
     else:
       return ""
 
-class ConditionalComment(Filter):
+class ConditionalComment(Node):
   """ Conditional comment block. Conditional comments are used for checking
   if a user is using IE and, if so, what version
   """
