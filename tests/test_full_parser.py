@@ -172,7 +172,10 @@ some text
   def test_conditional_comment(self):
     html = self.p.parse("""
 -#[if IE]  
-  do something
+  %script(src="run_this.js")
+
+  :plain
+    %test
       """)
 
-    assert html.render() == "<!--[if IE]>do something<![endif]-->"
+    assert html.render() == '<!--[if IE]><script src="run_this.js"></script>%test<![endif]-->'
