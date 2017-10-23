@@ -21,6 +21,12 @@ class TestTagParser(unittest.TestCase):
     with self.assertRaises(ParseError):
       self.tp.parse("% sometext")
 
+    with self.assertRaises(ParseError):
+      self.tp.parse("%12345")
+
+    with self.assertRaises(ParseError):
+      self.tp.parse("%-")
+
   def test_tag_name(self):
     with self.assertRaises(ParseError):
       self.tp.parse("%input#id/")
@@ -34,6 +40,9 @@ class TestTagParser(unittest.TestCase):
 
     e = self.tp.parse("%h1")
     assert e.tag == "h1"
+
+    e = self.tp.parse("%my-tag")
+    assert e.tag == "my-tag"
 
   def test_class(self):
     e = self.tp.parse("%input.my_Class")

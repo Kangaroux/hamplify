@@ -6,7 +6,7 @@ from .variable import VariableParser
 from hamplify.config import *
 from hamplify.element import SelfClosingTag, Tag, Text
 
-regex_tag_name = re.compile(r'([a-zA-Z][a-zA-Z0-9]*)')
+regex_tag_name = re.compile(r'([a-zA-Z][a-zA-Z0-9\-]*)')
 regex_class_id = re.compile(r'(?:\.|#)([a-zA-Z0-9_-]*)')
 
 class TagParser(BaseParser):

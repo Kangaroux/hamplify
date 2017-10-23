@@ -86,12 +86,14 @@ class TestFullParser(unittest.TestCase):
         still a comment
          %  bad tag
 
+      %custom-tag
+
       -# HTML comment
          some stuff
   """)
 
     assert (html.render() == "<!DOCTYPE html><html><head><title>My cool title</title></head><body>"
-      "<div class=\"container\"><p>some text</p><!-- HTML comment\n some stuff --></div></body></html>")
+      "<div class=\"container\"><p>some text</p><custom-tag></custom-tag><!-- HTML comment\n some stuff --></div></body></html>")
 
   def test_blocks(self):
     self.p = Parser({
