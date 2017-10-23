@@ -224,4 +224,7 @@ class HamplifyCompiler():
       time.sleep(0.5)
 
 def main():
-  HamplifyCompiler(arg_parser.parse_args()).run()
+  try:
+    HamplifyCompiler(arg_parser.parse_args()).run()
+  except KeyboardInterrupt:
+    pass
