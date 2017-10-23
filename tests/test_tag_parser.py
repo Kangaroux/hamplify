@@ -49,7 +49,7 @@ class TestTagParser(unittest.TestCase):
       self.tp.parse("%button.[class]")
 
     with self.assertRaises(ParseError):
-      self.tp.parse("#id.class")
+      self.tp.parse("#id.class#another-id")
 
   def test_multiple_classes(self):
     e = self.tp.parse("%input.class1.class2.class3")
@@ -71,6 +71,14 @@ class TestTagParser(unittest.TestCase):
 
     with self.assertRaises(ParseError):
       self.tp.parse("%button#id/")
+
+    e = self.tp.parse("%a#id.class")
+    assert e.id == "id"
+    assert e.classes == ["class"]
+
+    e = self.tp.parse("%a.class#id")
+    assert e.id == "id"
+    assert e.classes == ["class"]
 
   def test_no_tag_name(self):
     e = self.tp.parse(".class#id some text")

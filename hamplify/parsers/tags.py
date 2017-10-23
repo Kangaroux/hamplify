@@ -53,8 +53,9 @@ class TagParser(BaseParser):
     if parse_name:
       self._parse_tag_name()
       
-    self._parse_classes()
     self._parse_id()
+    self._parse_classes()
+    self._parse_id(True)
     self._parse_attributes()
 
     return self.tag
@@ -62,7 +63,7 @@ class TagParser(BaseParser):
   def _parse_tag_name(self):
     """ Extracts the tag name and strips it from the text.
 
-    [%p].style#id
+    [%p]#id.style#id
     """
 
     # Remove the tag token
@@ -89,7 +90,7 @@ class TagParser(BaseParser):
   def _parse_classes(self):
     """ Extracts a list of classes (if any)
 
-    %p[.style]#id
+    %p#id[.style]#id
     """
 
     while self.text and self.text.startswith(TOKEN_CLASS):
@@ -102,10 +103,12 @@ class TagParser(BaseParser):
       self.tag.classes.append(class_name)
       self.text = self.text[len(class_name)+1:]
 
-  def _parse_id(self):
-    """ Extracts an ID for the element (if it has one)
+  def _parse_id(self, end=False):
+    """ Extracts an ID for the element (if it has one). The ID can come at the beginning
+    or the end of the tag definition. If at the beginning, no classes may come before it.
+    If at the end, no classes may come after it.
 
-    %p.style[#id]
+    %p[#id].style[#id]
     """
 
     while self.text and self.text.startswith(TOKEN_ID):
@@ -122,8 +125,9 @@ class TagParser(BaseParser):
       self.tag.id = id_name
       self.text = self.text[len(id_name) + len(TOKEN_ID):]
 
-    if self.text and self.text.startswith(TOKEN_CLASS):
-      raise ParseError("Encountered a class after an ID (ID must be last)")
+    # The ID can be at the start or the end
+    if self.text and end and self.text.startswith(TOKEN_CLASS):
+      raise ParseError("Encountered a class after an ID (must be either before or after all of the classes)")
 
   def _parse_attributes(self):
     if not self.text:
